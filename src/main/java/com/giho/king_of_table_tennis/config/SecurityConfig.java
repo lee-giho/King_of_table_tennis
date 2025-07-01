@@ -26,7 +26,9 @@ public class SecurityConfig {
       .formLogin(AbstractHttpConfigurer::disable) // Form 로그인 방식 disable
       .httpBasic(AbstractHttpConfigurer::disable) // http basic 인증 방식 disable
       .authorizeHttpRequests((auth) -> auth // 경로별 인가 작업
-        .requestMatchers("/login", "/", "/join").permitAll()
+        .requestMatchers(
+          "/api/auth/**"
+        ).permitAll()
         .requestMatchers("/admin").hasRole("ADMIN")
         .anyRequest().authenticated()
       )
