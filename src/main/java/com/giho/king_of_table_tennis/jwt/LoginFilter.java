@@ -1,27 +1,40 @@
 package com.giho.king_of_table_tennis.jwt;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.giho.king_of_table_tennis.dto.CustomUserDetails;
+import com.giho.king_of_table_tennis.dto.LoginDTO;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.StreamUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
+  ObjectMapper objectMapper = new ObjectMapper();
+
   private final AuthenticationManager authenticationManager;
   private final JWTUtil jwtUtil;
-  private final long tokenExp;
+  private final long accessTokenExp;
+  private final long refreshTokenExp;
 
   @Override
   protected String obtainUsername(HttpServletRequest request) {
@@ -31,12 +44,24 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
   @Override
   public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-    // 클라이언트 요청에서 username, password 추출
-    String id = obtainUsername(request);
-    String password = obtainPassword(request);
+    ServletInputStream inputStream;
+    String requestBody;
+    try {
+      inputStream = request.getInputStream();
+      requestBody = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    LoginDTO loginDTO;
+    try {
+      loginDTO = objectMapper.readValue(requestBody, LoginDTO.class);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
 
     // spring security에서 username과 password를 검증하기 위해 token에 담아야 함
-    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(id, password, null);
+    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(loginDTO.getId(), loginDTO.getPassword(), null);
 
     // token에 담은 검증을 위한 AuthenticationManager로 전달
     return authenticationManager.authenticate(authToken);
@@ -44,7 +69,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
   // 로그인 성공 시 실행하는 메소드 (여기서 JWT 발급)
   @Override
-  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
+  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
 
     CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
@@ -56,9 +81,20 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     String role = auth.getAuthority();
 
-    String token = jwtUtil.createJwt(id, role, tokenExp);
+    String accessToken = jwtUtil.createJwt("access", id, role, accessTokenExp);
+    String refreshToken = jwtUtil.createJwt("refresh", id, role, accessTokenExp);
 
-    response.addHeader("Authorization", "Bearer " + token);
+    // JSON 응답
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+
+    Map<String, String> tokens = new HashMap<>();
+    tokens.put("accessToken", accessToken);
+    tokens.put("refreshToken", refreshToken);
+
+    String responseBody = new ObjectMapper().writeValueAsString(tokens);
+    response.getWriter().write(responseBody);
+    response.setStatus(HttpStatus.OK.value());
   }
 
   // 로그인 실패 시 실행하는 메소드

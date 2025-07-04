@@ -25,8 +25,11 @@ public class SecurityConfig {
   private final AuthenticationConfiguration authenticationConfiguration;
   private final JWTUtil jwtUtil;
 
-  @Value("${TOKEN_EXP}")
-  private long tokenExp;
+  @Value("${ACCESS_TOKEN_EXP}")
+  private long accessTokenExp;
+
+  @Value("${REFRESH_TOKEN_EXP}")
+  private long refreshTokenExp;
 
   @Bean
   public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -54,7 +57,7 @@ public class SecurityConfig {
         .anyRequest().authenticated()
       )
       .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
-      .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, tokenExp), UsernamePasswordAuthenticationFilter.class) // UsernamePasswordAuthenticationFilter를 custom한 LoginFilter()로 대체
+      .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, accessTokenExp, refreshTokenExp), UsernamePasswordAuthenticationFilter.class) // UsernamePasswordAuthenticationFilter를 custom한 LoginFilter()로 대체
       .sessionManagement((session) -> session // 세션 설정
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
       );
