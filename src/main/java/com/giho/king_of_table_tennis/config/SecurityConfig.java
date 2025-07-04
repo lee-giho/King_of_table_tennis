@@ -1,8 +1,10 @@
 package com.giho.king_of_table_tennis.config;
 
+import com.giho.king_of_table_tennis.jwt.JWTFilter;
 import com.giho.king_of_table_tennis.jwt.JWTUtil;
 import com.giho.king_of_table_tennis.jwt.LoginFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +24,9 @@ public class SecurityConfig {
 
   private final AuthenticationConfiguration authenticationConfiguration;
   private final JWTUtil jwtUtil;
+
+  @Value("${TOKEN_EXP}")
+  private long tokenExp;
 
   @Bean
   public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -48,7 +53,8 @@ public class SecurityConfig {
         .requestMatchers("/admin").hasRole("ADMIN")
         .anyRequest().authenticated()
       )
-      .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class) // UsernamePasswordAuthenticationFilter를 custom한 LoginFilter()로 대체
+      .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
+      .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, tokenExp), UsernamePasswordAuthenticationFilter.class) // UsernamePasswordAuthenticationFilter를 custom한 LoginFilter()로 대체
       .sessionManagement((session) -> session // 세션 설정
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
       );

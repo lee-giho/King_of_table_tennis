@@ -14,6 +14,7 @@ public class KingOfTableTennisApplication {
 
     System.setProperty("MYSQL_PASSWORD", dotenv.get("MYSQL_PASSWORD"));
     System.setProperty("JWT_SECRET_KEY", dotenv.get("JWT_SECRET_KEY"));
+    System.setProperty("TOKEN_EXP", dotenv.get("TOKEN_EXP"));
 
     SpringApplication.run(KingOfTableTennisApplication.class, args);
   }
