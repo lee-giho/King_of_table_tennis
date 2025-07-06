@@ -2,6 +2,8 @@ package com.giho.king_of_table_tennis.jwt;
 
 import com.giho.king_of_table_tennis.dto.CustomUserDetails;
 import com.giho.king_of_table_tennis.entity.UserEntity;
+import com.giho.king_of_table_tennis.exception.CustomException;
+import com.giho.king_of_table_tennis.exception.ErrorCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
