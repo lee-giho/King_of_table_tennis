@@ -82,7 +82,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     String role = auth.getAuthority();
 
     String accessToken = jwtUtil.createJwt("access", id, role, accessTokenExp);
-    String refreshToken = jwtUtil.createJwt("refresh", id, role, accessTokenExp);
+    String refreshToken = jwtUtil.createJwt("refresh", id, role, refreshTokenExp);
 
     // JSON 응답
     response.setContentType("application/json");

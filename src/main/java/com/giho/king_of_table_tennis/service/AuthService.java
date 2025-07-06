@@ -2,6 +2,8 @@ package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.RegisterDTO;
 import com.giho.king_of_table_tennis.entity.UserEntity;
+import com.giho.king_of_table_tennis.exception.CustomException;
+import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,7 +21,7 @@ public class AuthService {
     boolean isExistUser = userRepository.existsById(registerDTO.getId());
 
     if (isExistUser) {
-      return false;
+      throw new CustomException(ErrorCode.USER_ALREADY_EXIST);
     }
 
     UserEntity userEntity = new UserEntity();
