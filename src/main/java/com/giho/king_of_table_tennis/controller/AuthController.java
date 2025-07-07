@@ -1,6 +1,7 @@
 package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.CheckIdDuplicationDTO;
+import com.giho.king_of_table_tennis.dto.CheckNickNameDuplicationDTO;
 import com.giho.king_of_table_tennis.dto.RegisterDTO;
 import com.giho.king_of_table_tennis.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,13 @@ public class AuthController {
   public ResponseEntity<Boolean> checkIdDuplication(@RequestBody CheckIdDuplicationDTO checkIdDuplicationDTO) {
 
     boolean response = authService.checkIdDuplication(checkIdDuplicationDTO);
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/exists/nickName")
+  public ResponseEntity<Boolean> checkNickNameDuplication(@RequestBody CheckNickNameDuplicationDTO checkNickNameDuplicationDTO) {
+
+    boolean response = authService.checkNickNameDuplication(checkNickNameDuplicationDTO);
     return ResponseEntity.ok(response);
   }
 }

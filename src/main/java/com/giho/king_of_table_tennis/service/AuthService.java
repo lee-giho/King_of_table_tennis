@@ -1,6 +1,7 @@
 package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.CheckIdDuplicationDTO;
+import com.giho.king_of_table_tennis.dto.CheckNickNameDuplicationDTO;
 import com.giho.king_of_table_tennis.dto.RegisterDTO;
 import com.giho.king_of_table_tennis.entity.UserEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
@@ -43,6 +44,12 @@ public class AuthService {
   public boolean checkIdDuplication(CheckIdDuplicationDTO checkIdDuplicationDTO) {
 
     boolean isDuplication = userRepository.existsById(checkIdDuplicationDTO.getId());
+    return isDuplication;
+  }
+
+  public boolean checkNickNameDuplication(CheckNickNameDuplicationDTO checkNickNameDuplicationDTO) {
+
+    boolean isDuplication = userRepository.existsByNickName(checkNickNameDuplicationDTO.getNickName());
     return isDuplication;
   }
 }
