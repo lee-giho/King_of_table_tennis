@@ -50,6 +50,9 @@ public class SecurityConfig {
       .httpBasic(AbstractHttpConfigurer::disable) // http basic 인증 방식 disable
       .authorizeHttpRequests((auth) -> auth // 경로별 인가 작업
         .requestMatchers(
+          "/v3/api-docs/**",
+          "/swagger-ui/**",
+          "/swagger-ui.html",
           "/api/auth/**",
           "/login"
         ).permitAll()
