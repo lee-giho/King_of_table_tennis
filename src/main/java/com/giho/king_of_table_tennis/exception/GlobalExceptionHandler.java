@@ -1,13 +1,16 @@
 package com.giho.king_of_table_tennis.exception;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 
-@RestControllerAdvice
+@Hidden
+@RestControllerAdvice(annotations = {RestController.class})
 public class GlobalExceptionHandler {
 
   // CustomException 처리
