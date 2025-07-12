@@ -19,4 +19,14 @@ public class EmailController {
     SendVerificationCodeResponse sendVerificationCodeResponse = emailService.sendVerificationEmail(type, email, request);
     return ResponseEntity.ok(sendVerificationCodeResponse);
   }
+
+  @GetMapping("/code/verify/{code}")
+  public ResponseEntity<String> checkVerificationCode(@RequestHeader("sessionId") String sessionId, @PathVariable String code, HttpServletRequest request) {
+    boolean response = emailService.checkVerificationCode(sessionId, code, request);
+    if (response) {
+      return ResponseEntity.ok("인증번호가 일치합니다.");
+    } else {
+      return ResponseEntity.ok("인증번호가 일치하지 않습니다.");
+    }
+  }
 }

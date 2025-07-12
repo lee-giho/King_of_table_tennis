@@ -52,6 +52,27 @@ public class EmailService {
     }
   }
 
+  // 인증번호 확인 메서드
+  public boolean checkVerificationCode(String sessionId, String userCode, HttpServletRequest request) {
+    HttpSession session = request.getSession(false);
+    if (session == null || !sessionId.equals(session.getId())) {
+      throw new CustomException(ErrorCode.INVALID_SESSION);
+    }
+
+    String sessionCode = (String) session.getAttribute("verificationCode");
+
+    if (sessionCode == null) {
+      throw new CustomException(ErrorCode.VERIFICATION_CODE_MISMATCH, "저장된 인증번호가 없습니다.");
+    }
+
+    if (!sessionCode.equals(userCode)) {
+      throw new CustomException(ErrorCode.VERIFICATION_CODE_MISMATCH);
+    }
+
+    session.removeAttribute("verificationCode");
+    return true;
+  }
+
   // 이메일 타입에 맞는 제목 반환
   private String getSubjectByType(String type) {
     return switch (type) {
