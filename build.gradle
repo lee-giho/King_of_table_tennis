@@ -45,6 +45,15 @@ dependencies {
 
     // Swagger UI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+    // 이메일 발송을 위한 Spring Boot Starter Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // HTML 템플릿을 사용하여 이메일을 꾸미기 위한 Thymeleaf
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // Google API Client Library for Java
+    implementation 'com.google.api-client:google-api-client:2.7.2'
 }
 
 tasks.named('test') {
