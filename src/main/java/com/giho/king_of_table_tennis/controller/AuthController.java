@@ -1,6 +1,7 @@
 package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.CheckExistsResponse;
+import com.giho.king_of_table_tennis.dto.FindIdResponse;
 import com.giho.king_of_table_tennis.dto.RegisterDTO;
 import com.giho.king_of_table_tennis.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,5 +73,11 @@ public class AuthController {
 
     CheckExistsResponse checkExistsResponse = authService.checkNickNameDuplication(nickName);
     return ResponseEntity.ok(checkExistsResponse);
+  }
+
+  @GetMapping("/id")
+  public ResponseEntity<FindIdResponse> findId(@RequestParam(name = "name") String name, @RequestParam(name = "email") String email) {
+    FindIdResponse findIdResponse = authService.findId(name, email);
+    return ResponseEntity.ok(findIdResponse);
   }
 }

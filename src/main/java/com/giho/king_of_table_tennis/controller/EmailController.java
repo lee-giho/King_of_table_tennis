@@ -37,8 +37,8 @@ public class EmailController {
       schema = @Schema(implementation = SendVerificationCodeResponse.class)
     )
   )
-  @GetMapping("/code/{type}/{email}")
-  public ResponseEntity<SendVerificationCodeResponse> sendVerificationCode(@PathVariable String type, @PathVariable String email, HttpServletRequest request) {
+  @GetMapping("/code/{type}")
+  public ResponseEntity<SendVerificationCodeResponse> sendVerificationCode(@PathVariable String type, @RequestParam("email") String email, HttpServletRequest request) {
     SendVerificationCodeResponse sendVerificationCodeResponse = emailService.sendVerificationEmail(type, email, request);
     return ResponseEntity.ok(sendVerificationCodeResponse);
   }
@@ -52,8 +52,8 @@ public class EmailController {
       schema = @Schema(type = "string", example = "인증번호가 일치합니다.(일치하지 않습니다.)")
     )
   )
-  @GetMapping("/code/verify/{code}")
-  public ResponseEntity<String> checkVerificationCode(@RequestHeader("sessionId") String sessionId, @PathVariable String code, HttpServletRequest request) {
+  @GetMapping("/code/verify")
+  public ResponseEntity<String> checkVerificationCode(@RequestHeader("sessionId") String sessionId, @RequestParam("code") String code, HttpServletRequest request) {
     boolean response = emailService.checkVerificationCode(sessionId, code, request);
     if (response) {
       return ResponseEntity.ok("인증번호가 일치합니다.");
