@@ -1,14 +1,15 @@
 package com.giho.king_of_table_tennis.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
-public class FindIdResponse {
-  @Schema(description = "찾은 아이디", example = "asdfasdf")
+@Schema(description = "비밀번호 찾기(변경) DTO")
+public class ChangePasswordRequest {
   private String id;
+  private String password;
+  private String name;
+  private String email;
 }
