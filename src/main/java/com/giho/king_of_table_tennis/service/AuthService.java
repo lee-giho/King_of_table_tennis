@@ -1,6 +1,8 @@
 package com.giho.king_of_table_tennis.service;
 
+import com.giho.king_of_table_tennis.dto.ChangePasswordRequest;
 import com.giho.king_of_table_tennis.dto.CheckExistsResponse;
+import com.giho.king_of_table_tennis.dto.FindIdResponse;
 import com.giho.king_of_table_tennis.dto.RegisterDTO;
 import com.giho.king_of_table_tennis.entity.UserEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
@@ -50,5 +52,25 @@ public class AuthService {
 
     boolean isDuplication = userRepository.existsByNickName(nickName);
     return new CheckExistsResponse(isDuplication);
+  }
+
+  public FindIdResponse findId(String name, String email) {
+    UserEntity user = userRepository.findByNameAndEmail(name, email)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    return new FindIdResponse(user.getId());
+  }
+
+  public boolean findPassword(ChangePasswordRequest changePasswordRequest) {
+    try {
+      UserEntity user = userRepository.findByIdAndNameAndEmail(changePasswordRequest.getId(), changePasswordRequest.getName(), changePasswordRequest.getEmail())
+        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+      user.setPassword(bCryptPasswordEncoder.encode(changePasswordRequest.getPassword()));
+      userRepository.save(user);
+      return true;
+    } catch (Exception e) {
+      System.out.println("Error: " + e.getMessage());
+      return false;
+    }
   }
 }
