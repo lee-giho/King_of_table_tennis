@@ -77,6 +77,8 @@ public class EmailService {
   private String getSubjectByType(String type) {
     return switch (type) {
       case "register" -> "[탁구왕] 회원가입 인증번호";
+      case "find-id" -> "[탁구왕] 아이디 찾기 인증번호";
+      case "find-password" -> "[탁구왕] 비밀번호 찾기 인증번호";
       default -> "[탁구왕] 이메일";
     };
   }
@@ -92,6 +94,8 @@ public class EmailService {
   private String getTemplateName(String type) {
     return switch (type) {
       case "register" -> "sendCode_register"; // 회원가입 템플릿
+      case "find-id" -> "sendCode_findId"; // 아이디 찾기 템플릿
+      case "find-password" -> "sendCode_findPassword"; // 비밀번호 찾기 템플릿
       default -> "sendCode_default"; // 기본 템플릿
     };
   }
