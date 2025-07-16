@@ -3,13 +3,17 @@ package com.giho.king_of_table_tennis.jwt;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.giho.king_of_table_tennis.dto.CustomUserDetails;
-import com.giho.king_of_table_tennis.dto.LoginDTO;
+import com.giho.king_of_table_tennis.dto.LoginRequestDTO;
+import com.giho.king_of_table_tennis.dto.LoginResponseDTO;
+import com.giho.king_of_table_tennis.entity.UserEntity;
+import com.giho.king_of_table_tennis.exception.CustomException;
+import com.giho.king_of_table_tennis.exception.ErrorCode;
+import com.giho.king_of_table_tennis.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,15 +26,14 @@ import org.springframework.util.StreamUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
   ObjectMapper objectMapper = new ObjectMapper();
 
+  private final UserRepository userRepository;
   private final AuthenticationManager authenticationManager;
   private final JWTUtil jwtUtil;
   private final long accessTokenExp;
@@ -53,9 +56,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
       throw new RuntimeException(e);
     }
 
-    LoginDTO loginDTO;
+    LoginRequestDTO loginDTO;
     try {
-      loginDTO = objectMapper.readValue(requestBody, LoginDTO.class);
+      loginDTO = objectMapper.readValue(requestBody, LoginRequestDTO.class);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
@@ -84,15 +87,23 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     String accessToken = jwtUtil.createJwt("access", id, role, accessTokenExp);
     String refreshToken = jwtUtil.createJwt("refresh", id, role, refreshTokenExp);
 
+    UserEntity user = userRepository.findById(id)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    boolean isFirstLogin = user.getNickName().isEmpty() && user.getProfileImage().isEmpty();
+
     // JSON 응답
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
-    Map<String, String> tokens = new HashMap<>();
-    tokens.put("accessToken", accessToken);
-    tokens.put("refreshToken", refreshToken);
+    LoginResponseDTO loginResponseDTO = LoginResponseDTO.builder()
+      .accessToken(accessToken)
+      .refreshToken(refreshToken)
+      .isFirstLogin(isFirstLogin)
+      .build();
 
-    String responseBody = new ObjectMapper().writeValueAsString(tokens);
+    String responseBody = new ObjectMapper().writeValueAsString(loginResponseDTO);
+
     response.getWriter().write(responseBody);
     response.setStatus(HttpStatus.OK.value());
   }

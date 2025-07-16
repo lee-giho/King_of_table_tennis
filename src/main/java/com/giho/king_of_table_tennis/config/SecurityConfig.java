@@ -3,6 +3,7 @@ package com.giho.king_of_table_tennis.config;
 import com.giho.king_of_table_tennis.jwt.JWTFilter;
 import com.giho.king_of_table_tennis.jwt.JWTUtil;
 import com.giho.king_of_table_tennis.jwt.LoginFilter;
+import com.giho.king_of_table_tennis.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+  private final UserRepository userRepository;
   private final AuthenticationConfiguration authenticationConfiguration;
   private final JWTUtil jwtUtil;
 
@@ -60,7 +62,7 @@ public class SecurityConfig {
         .anyRequest().authenticated()
       )
       .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
-      .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, accessTokenExp, refreshTokenExp), UsernamePasswordAuthenticationFilter.class) // UsernamePasswordAuthenticationFilter를 custom한 LoginFilter()로 대체
+      .addFilterAt(new LoginFilter(userRepository, authenticationManager(authenticationConfiguration), jwtUtil, accessTokenExp, refreshTokenExp), UsernamePasswordAuthenticationFilter.class) // UsernamePasswordAuthenticationFilter를 custom한 LoginFilter()로 대체
       .sessionManagement((session) -> session // 세션 설정
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
       );
