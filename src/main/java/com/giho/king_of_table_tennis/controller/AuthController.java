@@ -60,22 +60,6 @@ public class AuthController {
     return ResponseEntity.ok(checkExistsResponse);
   }
 
-  @Operation(summary = "nickName 중복 확인", description = "회원가입 시 사용하려는 nickName의 중복 여부를 확인하는 API")
-  @ApiResponse(
-    responseCode = "200",
-    description = "nickName 중복 여부 반환",
-    content = @Content(
-      mediaType = "application/json",
-      schema = @Schema(implementation = CheckExistsResponse.class)
-    )
-  )
-  @GetMapping("/exists/nickName/{nickName}")
-  public ResponseEntity<CheckExistsResponse> checkNickNameDuplication(@PathVariable String nickName) {
-
-    CheckExistsResponse checkExistsResponse = authService.checkNickNameDuplication(nickName);
-    return ResponseEntity.ok(checkExistsResponse);
-  }
-
   @Operation(summary = "id 찾기", description = "이름과 이메일을 통해 아이디를 찾고 반환해주는 API")
   @ApiResponse(
     responseCode = "200",
