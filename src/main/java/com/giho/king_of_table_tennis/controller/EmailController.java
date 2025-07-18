@@ -1,6 +1,6 @@
 package com.giho.king_of_table_tennis.controller;
 
-import com.giho.king_of_table_tennis.dto.SendVerificationCodeResponse;
+import com.giho.king_of_table_tennis.dto.SendVerificationCodeResponseDTO;
 import com.giho.king_of_table_tennis.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,12 +34,12 @@ public class EmailController {
     description = "인증번호가 저장되어 있는 세션 ID 반환",
     content = @Content(
       mediaType = "application/json",
-      schema = @Schema(implementation = SendVerificationCodeResponse.class)
+      schema = @Schema(implementation = SendVerificationCodeResponseDTO.class)
     )
   )
   @GetMapping("/code/{type}")
-  public ResponseEntity<SendVerificationCodeResponse> sendVerificationCode(@PathVariable String type, @RequestParam("email") String email, HttpServletRequest request) {
-    SendVerificationCodeResponse sendVerificationCodeResponse = emailService.sendVerificationEmail(type, email, request);
+  public ResponseEntity<SendVerificationCodeResponseDTO> sendVerificationCode(@PathVariable String type, @RequestParam("email") String email, HttpServletRequest request) {
+    SendVerificationCodeResponseDTO sendVerificationCodeResponse = emailService.sendVerificationEmail(type, email, request);
     return ResponseEntity.ok(sendVerificationCodeResponse);
   }
 

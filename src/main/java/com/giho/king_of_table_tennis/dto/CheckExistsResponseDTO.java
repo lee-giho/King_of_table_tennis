@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class SendVerificationCodeResponse {
-  @Schema(description = "세션 아이디", example = "C9D663E9839884111CC7CB0DF1C82177")
-  private String sessionId;
+@Schema(description = "중복 여부 응답 DTO")
+public class CheckExistsResponseDTO {
+  private boolean exists;
 }

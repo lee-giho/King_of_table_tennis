@@ -1,6 +1,6 @@
 package com.giho.king_of_table_tennis.service;
 
-import com.giho.king_of_table_tennis.dto.SendVerificationCodeResponse;
+import com.giho.king_of_table_tennis.dto.SendVerificationCodeResponseDTO;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import jakarta.mail.MessagingException;
@@ -23,7 +23,7 @@ public class EmailService {
   private final SpringTemplateEngine templateEngine;
 
   // 이메일 전송 메서드
-  public SendVerificationCodeResponse sendVerificationEmail (String type, String email, HttpServletRequest request) {
+  public SendVerificationCodeResponseDTO sendVerificationEmail (String type, String email, HttpServletRequest request) {
     try {
       HttpSession session = request.getSession(true);
       MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -44,7 +44,7 @@ public class EmailService {
       if (!isSaveCode) {
         throw new CustomException(ErrorCode.EMAIL_SEND_FAILED);
       }
-      return new SendVerificationCodeResponse(session.getId());
+      return new SendVerificationCodeResponseDTO(session.getId());
     } catch (MessagingException messagingException) {
       throw new CustomException(ErrorCode.EMAIL_SEND_FAILED, "이메일 전송 실패: " + messagingException.getMessage());
     } catch (Exception e) {
