@@ -48,12 +48,6 @@ public class AuthService {
     return new CheckExistsResponseDTO(isDuplication);
   }
 
-  public CheckExistsResponseDTO checkNickNameDuplication(String nickName) {
-
-    boolean isDuplication = userRepository.existsByNickName(nickName);
-    return new CheckExistsResponseDTO(isDuplication);
-  }
-
   public FindIdResponseDTO findId(String name, String email) {
     UserEntity user = userRepository.findByNameAndEmail(name, email)
       .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));

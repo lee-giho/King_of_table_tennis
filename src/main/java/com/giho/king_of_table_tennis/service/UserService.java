@@ -3,10 +3,13 @@ package com.giho.king_of_table_tennis.service;
 import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
 import com.giho.king_of_table_tennis.dto.CheckExistsResponseDTO;
 import com.giho.king_of_table_tennis.dto.ProfileRegistrationRequestDTO;
+import com.giho.king_of_table_tennis.dto.TableTennisInfoRegistrationRequestDTO;
 import com.giho.king_of_table_tennis.entity.UserEntity;
+import com.giho.king_of_table_tennis.entity.UserTableTennisInfoEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.UserRepository;
+import com.giho.king_of_table_tennis.repository.UserTableTennisInfoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
   private final UserRepository userRepository;
+
+  private final UserTableTennisInfoRepository userTableTennisInfoRepository;
 
   private final ImageService imageService;
 
@@ -50,6 +55,30 @@ public class UserService {
     } catch (Exception e) {
       throw new CustomException(ErrorCode.DB_SAVE_ERROR);
     }
+    return new BooleanResponseDTO(true);
+  }
+
+  public BooleanResponseDTO tableTennisInfoRegistration(TableTennisInfoRegistrationRequestDTO tennisInfoRegistrationRequestDTO) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    System.out.println(tennisInfoRegistrationRequestDTO.getRacketType());
+    System.out.println(tennisInfoRegistrationRequestDTO.getUserLevel());
+
+    boolean isExistTableTennisInfo = userTableTennisInfoRepository.existsByUserId(userId);
+
+    if (isExistTableTennisInfo) {
+      throw new CustomException(ErrorCode.TABLE_TENNIS_INFO_ALREADY_EXIST);
+    }
+
+    UserTableTennisInfoEntity userTableTennisInfoEntity = new UserTableTennisInfoEntity();
+
+    userTableTennisInfoEntity.setUserId(userId);
+    userTableTennisInfoEntity.setRacketType(tennisInfoRegistrationRequestDTO.getRacketType());
+    userTableTennisInfoEntity.setUserLevel(tennisInfoRegistrationRequestDTO.getUserLevel());
+
+    userTableTennisInfoRepository.save(userTableTennisInfoEntity);
+
     return new BooleanResponseDTO(true);
   }
 }

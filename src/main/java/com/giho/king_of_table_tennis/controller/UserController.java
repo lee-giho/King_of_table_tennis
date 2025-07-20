@@ -3,6 +3,7 @@ package com.giho.king_of_table_tennis.controller;
 import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
 import com.giho.king_of_table_tennis.dto.CheckExistsResponseDTO;
 import com.giho.king_of_table_tennis.dto.ProfileRegistrationRequestDTO;
+import com.giho.king_of_table_tennis.dto.TableTennisInfoRegistrationRequestDTO;
 import com.giho.king_of_table_tennis.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -53,5 +54,20 @@ public class UserController {
   public ResponseEntity<BooleanResponseDTO> profileRegistration(@ModelAttribute ProfileRegistrationRequestDTO profileRegistrationRequestDTO) {
     BooleanResponseDTO booleanResponse = userService.profileRegistration(profileRegistrationRequestDTO);
     return ResponseEntity.ok(booleanResponse);
+  }
+
+  @Operation(summary = "racketType과 userLevel 등록", description = "첫 로그인 시 racketType과 userLevel을 등록하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "racketType과 userLevel 등록 성공 여부 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PostMapping("/tableTennisInfo")
+  public ResponseEntity<BooleanResponseDTO> tableTennisInfoRegistration(@RequestBody TableTennisInfoRegistrationRequestDTO tableTennisInfoRegistrationRequestDTO) {
+    BooleanResponseDTO booleanResponseDTO = userService.tableTennisInfoRegistration(tableTennisInfoRegistrationRequestDTO);
+      return ResponseEntity.ok(booleanResponseDTO);
   }
 }
