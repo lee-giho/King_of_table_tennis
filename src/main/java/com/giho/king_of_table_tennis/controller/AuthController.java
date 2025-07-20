@@ -1,9 +1,9 @@
 package com.giho.king_of_table_tennis.controller;
 
-import com.giho.king_of_table_tennis.dto.ChangePasswordRequest;
-import com.giho.king_of_table_tennis.dto.CheckExistsResponse;
-import com.giho.king_of_table_tennis.dto.FindIdResponse;
-import com.giho.king_of_table_tennis.dto.RegisterDTO;
+import com.giho.king_of_table_tennis.dto.ChangePasswordRequestDTO;
+import com.giho.king_of_table_tennis.dto.CheckExistsResponseDTO;
+import com.giho.king_of_table_tennis.dto.FindIdResponseDTO;
+import com.giho.king_of_table_tennis.dto.RegisterRequestDTO;
 import com.giho.king_of_table_tennis.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,7 +32,7 @@ public class AuthController {
     )
   )
   @PostMapping("/register")
-  public ResponseEntity<String> register(@RequestBody RegisterDTO registerDTO) {
+  public ResponseEntity<String> register(@RequestBody RegisterRequestDTO registerDTO) {
 
     boolean response = authService.register(registerDTO);
 
@@ -50,29 +50,13 @@ public class AuthController {
     description = "ID 중복 여부 반환",
     content = @Content(
       mediaType = "application/json",
-      schema = @Schema(implementation = CheckExistsResponse.class)
+      schema = @Schema(implementation = CheckExistsResponseDTO.class)
     )
   )
   @GetMapping("/exists/id/{id}")
-  public ResponseEntity<CheckExistsResponse> checkIdDuplication(@PathVariable String id) {
+  public ResponseEntity<CheckExistsResponseDTO> checkIdDuplication(@PathVariable String id) {
 
-    CheckExistsResponse checkExistsResponse = authService.checkIdDuplication(id);
-    return ResponseEntity.ok(checkExistsResponse);
-  }
-
-  @Operation(summary = "nickName 중복 확인", description = "회원가입 시 사용하려는 nickName의 중복 여부를 확인하는 API")
-  @ApiResponse(
-    responseCode = "200",
-    description = "nickName 중복 여부 반환",
-    content = @Content(
-      mediaType = "application/json",
-      schema = @Schema(implementation = CheckExistsResponse.class)
-    )
-  )
-  @GetMapping("/exists/nickName/{nickName}")
-  public ResponseEntity<CheckExistsResponse> checkNickNameDuplication(@PathVariable String nickName) {
-
-    CheckExistsResponse checkExistsResponse = authService.checkNickNameDuplication(nickName);
+    CheckExistsResponseDTO checkExistsResponse = authService.checkIdDuplication(id);
     return ResponseEntity.ok(checkExistsResponse);
   }
 
@@ -82,12 +66,12 @@ public class AuthController {
     description = "아이디 확인 후 반환",
     content = @Content(
       mediaType = "application/json",
-      schema = @Schema(implementation = FindIdResponse.class)
+      schema = @Schema(implementation = FindIdResponseDTO.class)
     )
   )
   @GetMapping("/id")
-  public ResponseEntity<FindIdResponse> findId(@RequestParam(name = "name") String name, @RequestParam(name = "email") String email) {
-    FindIdResponse findIdResponse = authService.findId(name, email);
+  public ResponseEntity<FindIdResponseDTO> findId(@RequestParam(name = "name") String name, @RequestParam(name = "email") String email) {
+    FindIdResponseDTO findIdResponse = authService.findId(name, email);
     return ResponseEntity.ok(findIdResponse);
   }
 
@@ -101,7 +85,7 @@ public class AuthController {
     )
   )
   @PatchMapping("/password")
-  public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+  public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequestDTO changePasswordRequest) {
     boolean response = authService.findPassword(changePasswordRequest);
     if (response) {
       return ResponseEntity.ok("비밀번호가 변경되었습니다.");

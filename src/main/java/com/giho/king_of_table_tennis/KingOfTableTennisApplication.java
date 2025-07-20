@@ -17,6 +17,7 @@ public class KingOfTableTennisApplication {
     System.setProperty("ACCESS_TOKEN_EXP", dotenv.get("ACCESS_TOKEN_EXP"));
     System.setProperty("REFRESH_TOKEN_EXP", dotenv.get("REFRESH_TOKEN_EXP"));
     System.setProperty("GOOGLE_MAIL_PASSWORD", dotenv.get("GOOGLE_MAIL_PASSWORD"));
+    System.setProperty("PROFILE_IMAGE_PATH", dotenv.get("PROFILE_IMAGE_PATH"));
 
     SpringApplication.run(KingOfTableTennisApplication.class, args);
   }

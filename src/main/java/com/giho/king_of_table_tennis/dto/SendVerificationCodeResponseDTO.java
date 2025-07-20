@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class FindIdResponse {
-  @Schema(description = "찾은 아이디", example = "asdfasdf")
-  private String id;
+@Schema(description = "인증번호 전송 응답 DTO")
+public class SendVerificationCodeResponseDTO {
+  private String sessionId;
 }

@@ -8,6 +8,9 @@ build/
 ### 환경변수 ###
 *.env
 
+### 업로드 되는 사진 ###
+upload/
+
 ### 도커파일 ###
 Dockerfile
 docker-compose.yml

@@ -6,8 +6,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Schema(description = "비밀번호 찾기(변경) DTO")
-public class ChangePasswordRequest {
+@Schema(description = "비밀번호 찾기(변경) 요청 DTO")
+public class ChangePasswordRequestDTO {
   private String id;
   private String password;
   private String name;

@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class CheckExistsResponse {
-  @Schema(description = "중복 여부", example = "true")
+@Schema(description = "중복 여부 응답 DTO")
+public class CheckExistsResponseDTO {
   private boolean exists;
 }
