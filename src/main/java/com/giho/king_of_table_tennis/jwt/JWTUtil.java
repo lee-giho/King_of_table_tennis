@@ -59,4 +59,8 @@ public class JWTUtil {
       .signWith(secretKey)
       .compact();
   }
+
+  public String getTokenWithoutBearer(String token) {
+    return token.substring(7);
+  }
 }

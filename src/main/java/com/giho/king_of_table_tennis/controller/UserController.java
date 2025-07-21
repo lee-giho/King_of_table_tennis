@@ -1,9 +1,7 @@
 package com.giho.king_of_table_tennis.controller;
 
-import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
-import com.giho.king_of_table_tennis.dto.CheckExistsResponseDTO;
-import com.giho.king_of_table_tennis.dto.ProfileRegistrationRequestDTO;
-import com.giho.king_of_table_tennis.dto.TableTennisInfoRegistrationRequestDTO;
+import com.giho.king_of_table_tennis.dto.*;
+import com.giho.king_of_table_tennis.service.TokenService;
 import com.giho.king_of_table_tennis.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
 
   private final UserService userService;
+
+  private final TokenService tokenService;
 
   @Operation(summary = "nickName 중복 확인", description = "회원가입 시 사용하려는 nickName의 중복 여부를 확인하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
@@ -68,6 +67,21 @@ public class UserController {
   @PostMapping("/tableTennisInfo")
   public ResponseEntity<BooleanResponseDTO> tableTennisInfoRegistration(@RequestBody TableTennisInfoRegistrationRequestDTO tableTennisInfoRegistrationRequestDTO) {
     BooleanResponseDTO booleanResponseDTO = userService.tableTennisInfoRegistration(tableTennisInfoRegistrationRequestDTO);
-      return ResponseEntity.ok(booleanResponseDTO);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "accessToken 재발급", description = "refreshToken을 통해 accessToken을 재발급 받는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "새로 발급받은 accessToken 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = RefreshAccessTokenResponseDTO.class)
+    )
+  )
+  @GetMapping("/accessToken")
+  public ResponseEntity<RefreshAccessTokenResponseDTO> refreshAccessToken(@RequestHeader("Authorization") String refreshToken) {
+    RefreshAccessTokenResponseDTO refreshAccessTokenResponseDTO = tokenService.refreshAccessTokenByRefreshToken(refreshToken);
+    return ResponseEntity.ok(refreshAccessTokenResponseDTO);
   }
 }
