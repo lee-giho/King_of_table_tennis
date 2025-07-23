@@ -54,6 +54,9 @@ dependencies {
 
     // Google API Client Library for Java
     implementation 'com.google.api-client:google-api-client:2.7.2'
+
+    // MongoDB DB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 }
 
 tasks.named('test') {
