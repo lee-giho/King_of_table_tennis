@@ -14,7 +14,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "tableTennisCourts")
-public class TableTennisCourt {
+public class TableTennisCourtEntity {
   @Id
   private String id;
   private String name;
