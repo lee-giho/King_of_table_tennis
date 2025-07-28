@@ -2,6 +2,7 @@ package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
 import com.giho.king_of_table_tennis.dto.CreateGameRequestDTO;
+import com.giho.king_of_table_tennis.dto.GameParticipationRequestDTO;
 import com.giho.king_of_table_tennis.dto.SelectedGameDateResponseDTO;
 import com.giho.king_of_table_tennis.service.GameService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,5 +51,20 @@ public class GameController {
   public ResponseEntity<SelectedGameDateResponseDTO> getSelectedGameDate(@PathVariable String tableTennisCourtId) {
     SelectedGameDateResponseDTO selectedGameDateResponseDTO = gameService.getSelectedGameDate(tableTennisCourtId);
     return ResponseEntity.ok(selectedGameDateResponseDTO);
+  }
+
+  @Operation(summary = "탁구 경기 참가 신청", description = "수락 타입에 따라 탁구 경기 참가 신청을 하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "탁구 경기 참가 신청 완료 여부 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PostMapping("/participation")
+  public ResponseEntity<BooleanResponseDTO> gameParticipation(@RequestBody GameParticipationRequestDTO gameParticipationRequestDTO) {
+    BooleanResponseDTO booleanResponseDTO = gameService.gameParticipation(gameParticipationRequestDTO);
+    return ResponseEntity.ok(booleanResponseDTO);
   }
 }

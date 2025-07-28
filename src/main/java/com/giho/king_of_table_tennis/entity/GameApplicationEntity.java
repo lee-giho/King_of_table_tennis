@@ -19,6 +19,9 @@ public class GameApplicationEntity {
   @Column(name = "id", nullable = false, unique = true)
   private String id;
 
+  @Column(name = "game_info_id", nullable = false)
+  private String gameInfoId;
+
   @Column(name = "applicant_id", nullable = false)
   private String applicantId;
 

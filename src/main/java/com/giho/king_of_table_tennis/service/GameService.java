@@ -2,10 +2,11 @@ package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
 import com.giho.king_of_table_tennis.dto.CreateGameRequestDTO;
+import com.giho.king_of_table_tennis.dto.GameParticipationRequestDTO;
 import com.giho.king_of_table_tennis.dto.SelectedGameDateResponseDTO;
-import com.giho.king_of_table_tennis.entity.GameInfoEntity;
-import com.giho.king_of_table_tennis.entity.GameState;
-import com.giho.king_of_table_tennis.entity.GameStateEntity;
+import com.giho.king_of_table_tennis.entity.*;
+import com.giho.king_of_table_tennis.exception.CustomException;
+import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.GameApplicationRepository;
 import com.giho.king_of_table_tennis.repository.GameInfoRepository;
 import com.giho.king_of_table_tennis.repository.GameStateRepository;
@@ -67,5 +68,41 @@ public class GameService {
       .toList();
 
     return new SelectedGameDateResponseDTO(selectedGameDateList);
+  }
+
+  @Transactional
+  public BooleanResponseDTO gameParticipation(GameParticipationRequestDTO gameParticipationRequestDTO) {
+
+    GameInfoEntity gameInfoEntity = gameInfoRepository.findById(gameParticipationRequestDTO.getGameInfoId())
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
+
+    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(gameParticipationRequestDTO.getGameInfoId())
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    if (gameInfoEntity.getAcceptanceType() == AcceptanceType.FCFS) { // 선착순
+      if (gameStateEntity.getState() == GameState.RECRUITING) {
+        gameStateEntity.setChallengerId(gameParticipationRequestDTO.getChallengerId());
+        gameStateEntity.setState(GameState.WAITING);
+
+        gameStateRepository.save(gameStateEntity);
+      } else {
+        throw new CustomException(ErrorCode.GAME_NOT_RECRUITING);
+      }
+    } else { // 선택
+      if (gameStateEntity.getState() == GameState.RECRUITING) {
+        GameApplicationEntity gameApplicationEntity = new GameApplicationEntity();
+
+        gameApplicationEntity.setId(UUID.randomUUID().toString());
+        gameApplicationEntity.setGameInfoId(gameParticipationRequestDTO.getGameInfoId());
+        gameApplicationEntity.setApplicantId(gameParticipationRequestDTO.getChallengerId());
+        gameApplicationEntity.setApplicationAt(LocalDateTime.now());
+
+        gameApplicationRepository.save(gameApplicationEntity);
+      } else {
+        throw new CustomException(ErrorCode.GAME_NOT_RECRUITING);
+      }
+    }
+
+    return new BooleanResponseDTO(true);
   }
 }
