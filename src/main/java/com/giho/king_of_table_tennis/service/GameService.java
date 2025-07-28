@@ -2,6 +2,7 @@ package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
 import com.giho.king_of_table_tennis.dto.CreateGameRequestDTO;
+import com.giho.king_of_table_tennis.dto.SelectedGameDateResponseDTO;
 import com.giho.king_of_table_tennis.entity.GameInfoEntity;
 import com.giho.king_of_table_tennis.entity.GameState;
 import com.giho.king_of_table_tennis.entity.GameStateEntity;
@@ -14,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,10 +40,10 @@ public class GameService {
 
     gameInfoEntity.setId(gameInfoId);
     gameInfoEntity.setGameSet(createGameRequestDTO.getGameSet());
-    gameInfoEntity.setTargetScore(createGameRequestDTO.getTargetScore());
+    gameInfoEntity.setGameScore(createGameRequestDTO.getGameScore());
     gameInfoEntity.setPlace(createGameRequestDTO.getPlace());
-    gameInfoEntity.setType(createGameRequestDTO.getType());
-    gameInfoEntity.setDate(createGameRequestDTO.getDate());
+    gameInfoEntity.setAcceptanceType(createGameRequestDTO.getAcceptanceType());
+    gameInfoEntity.setGameDate(createGameRequestDTO.getGameDate());
 
     GameStateEntity gameStateEntity = new GameStateEntity();
 
@@ -53,5 +56,16 @@ public class GameService {
     gameStateRepository.save(gameStateEntity);
 
     return new BooleanResponseDTO(true);
+  }
+
+  public SelectedGameDateResponseDTO getSelectedGameDate(String tableTennisCourtId) {
+
+    List<GameInfoEntity> upComingGames = gameInfoRepository.findAllByPlaceAndGameDateAfter(tableTennisCourtId, LocalDateTime.now());
+
+    List<LocalDateTime> selectedGameDateList = upComingGames.stream()
+      .map(GameInfoEntity::getGameDate)
+      .toList();
+
+    return new SelectedGameDateResponseDTO(selectedGameDateList);
   }
 }

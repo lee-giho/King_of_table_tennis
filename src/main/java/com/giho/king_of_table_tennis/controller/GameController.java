@@ -2,6 +2,7 @@ package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
 import com.giho.king_of_table_tennis.dto.CreateGameRequestDTO;
+import com.giho.king_of_table_tennis.dto.SelectedGameDateResponseDTO;
 import com.giho.king_of_table_tennis.service.GameService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,10 +12,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,5 +35,20 @@ public class GameController {
   public ResponseEntity<BooleanResponseDTO> createGame(@RequestBody CreateGameRequestDTO createGameRequestDTO) {
     BooleanResponseDTO booleanResponseDTO = gameService.createGame(createGameRequestDTO);
     return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "선택 불가능한 날짜 가져오기", description = "게임 생성을 할 때 선택 불가능한 날짜를 가져오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "선택 불가능한 날짜 리스트 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = SelectedGameDateResponseDTO.class)
+    )
+  )
+  @GetMapping("/selectedGameDate/{tableTennisCourtId}")
+  public ResponseEntity<SelectedGameDateResponseDTO> getSelectedGameDate(@PathVariable String tableTennisCourtId) {
+    SelectedGameDateResponseDTO selectedGameDateResponseDTO = gameService.getSelectedGameDate(tableTennisCourtId);
+    return ResponseEntity.ok(selectedGameDateResponseDTO);
   }
 }

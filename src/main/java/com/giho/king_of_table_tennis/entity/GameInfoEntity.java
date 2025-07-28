@@ -19,16 +19,16 @@ public class GameInfoEntity {
   @Column(name = "game_set", nullable = false)
   private int gameSet;
 
-  @Column(name = "target_score", nullable = false)
-  private int targetScore;
+  @Column(name = "game_score", nullable = false)
+  private int gameScore;
 
   @Column(name = "place", nullable = false)
   private String place;
 
-  @Column(name = "type", nullable = false)
+  @Column(name = "acceptance_type", nullable = false)
   @Enumerated(EnumType.STRING)
-  private GameType type;
+  private AcceptanceType acceptanceType;
 
-  @Column(name = "date", nullable = false)
-  private LocalDateTime date;
+  @Column(name = "game_date", nullable = false)
+  private LocalDateTime gameDate;
 }
