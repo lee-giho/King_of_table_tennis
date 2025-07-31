@@ -10,5 +10,5 @@ import lombok.Setter;
 @AllArgsConstructor
 @Schema(description = "boolean 응답 DTO")
 public class BooleanResponseDTO {
-  private final boolean success;
+  private boolean success;
 }

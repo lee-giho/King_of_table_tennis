@@ -76,7 +76,7 @@ public class GameService {
     GameInfoEntity gameInfoEntity = gameInfoRepository.findById(gameParticipationRequestDTO.getGameInfoId())
       .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
 
-    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(gameParticipationRequestDTO.getGameInfoId())
+    GameStateEntity gameStateEntity = gameStateRepository.findWithLockByGameInfoId(gameParticipationRequestDTO.getGameInfoId())
       .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
 
     if (gameInfoEntity.getAcceptanceType() == AcceptanceType.FCFS) { // 선착순
