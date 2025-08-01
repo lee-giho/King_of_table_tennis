@@ -1,9 +1,6 @@
 package com.giho.king_of_table_tennis.controller;
 
-import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
-import com.giho.king_of_table_tennis.dto.CreateGameRequestDTO;
-import com.giho.king_of_table_tennis.dto.GameParticipationRequestDTO;
-import com.giho.king_of_table_tennis.dto.SelectedGameDateResponseDTO;
+import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.service.GameService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -66,5 +63,20 @@ public class GameController {
   public ResponseEntity<BooleanResponseDTO> gameParticipation(@RequestBody GameParticipationRequestDTO gameParticipationRequestDTO) {
     BooleanResponseDTO booleanResponseDTO = gameService.gameParticipation(gameParticipationRequestDTO);
     return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "등록된 경기 불러오기", description = "탁구장 별로 등록되어 있는 경기 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "탁구장에 등록되어 있는 경기 리스트 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = RecruitingGameListDTO.class)
+    )
+  )
+  @GetMapping("/recruitingList/{tableTennisCourtId}")
+  public ResponseEntity<RecruitingGameListDTO> getRecruitingGameList(@PathVariable String tableTennisCourtId) {
+    RecruitingGameListDTO recruitingGameListDTO = gameService.getRecruitingGameList(tableTennisCourtId);
+    return ResponseEntity.ok(recruitingGameListDTO);
   }
 }

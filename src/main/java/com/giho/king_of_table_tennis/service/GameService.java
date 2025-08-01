@@ -1,9 +1,6 @@
 package com.giho.king_of_table_tennis.service;
 
-import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
-import com.giho.king_of_table_tennis.dto.CreateGameRequestDTO;
-import com.giho.king_of_table_tennis.dto.GameParticipationRequestDTO;
-import com.giho.king_of_table_tennis.dto.SelectedGameDateResponseDTO;
+import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.*;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
@@ -104,5 +101,12 @@ public class GameService {
     }
 
     return new BooleanResponseDTO(true);
+  }
+
+  public RecruitingGameListDTO getRecruitingGameList(String tableTennisCourtId) {
+
+    List<RecruitingGameDTO> recruitingGames = gameInfoRepository.findRecruitingGamesByPlaceAndDateAfter(tableTennisCourtId, LocalDateTime.now());
+
+    return new RecruitingGameListDTO(recruitingGames);
   }
 }
