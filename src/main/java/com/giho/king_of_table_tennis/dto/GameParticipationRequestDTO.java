@@ -9,5 +9,4 @@ import lombok.Setter;
 @Schema(description = "게임 참가 요청 DTO")
 public class GameParticipationRequestDTO {
   private String gameInfoId;
-  private String challengerId;
 }

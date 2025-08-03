@@ -79,4 +79,19 @@ public class GameController {
     RecruitingGameListDTO recruitingGameListDTO = gameService.getRecruitingGameList(tableTennisCourtId);
     return ResponseEntity.ok(recruitingGameListDTO);
   }
+
+  @Operation(summary = "경기에 대한 자세한 정보 불러오기", description = "참가자 정보와 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "경기에 대한 참가자와 경기 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = GameDetailInfo.class)
+    )
+  )
+  @GetMapping("/detailInfo/{gameInfoId}")
+  public ResponseEntity<GameDetailInfo> getGameDetailInfo(@PathVariable String gameInfoId) {
+    GameDetailInfo gameDetailInfo = gameService.getGameDetailInfo(gameInfoId);
+    return ResponseEntity.ok(gameDetailInfo);
+  }
 }
