@@ -56,6 +56,7 @@ public class SecurityConfig {
           "/swagger-ui/**",
           "/swagger-ui.html",
           "/api/auth/**",
+          "/image/profile/**",
           "/login"
         ).permitAll()
         .requestMatchers("/admin").hasRole("ADMIN")
