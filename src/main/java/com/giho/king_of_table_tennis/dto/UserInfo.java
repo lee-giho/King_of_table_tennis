@@ -16,4 +16,7 @@ public class UserInfo {
   private String email;
   private String profileImage;
   private String racketType;
+  private String userLevel;
+  private int winCount;
+  private int defeatCount;
 }

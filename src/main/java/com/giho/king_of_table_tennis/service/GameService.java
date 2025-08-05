@@ -112,8 +112,16 @@ public class GameService {
   }
 
   public RecruitingGameListDTO getRecruitingGameList(String tableTennisCourtId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
 
     List<RecruitingGameDTO> recruitingGames = gameInfoRepository.findRecruitingGamesByPlaceAndDateAfter(tableTennisCourtId, LocalDateTime.now());
+
+    for (RecruitingGameDTO dto : recruitingGames) {
+      if (dto.getCreatorId().equals(userId)) {
+        dto.setMine(true);
+      }
+    }
 
     return new RecruitingGameListDTO(recruitingGames);
   }

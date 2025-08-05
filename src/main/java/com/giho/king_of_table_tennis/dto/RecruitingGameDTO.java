@@ -15,4 +15,12 @@ public class RecruitingGameDTO {
   private GameInfoEntity gameInfo;
   private String creatorId;
   private GameState gameState;
+  private boolean isMine;
+
+  public RecruitingGameDTO(GameInfoEntity gameInfo, String creatorId, GameState gameState) {
+    this.gameInfo = gameInfo;
+    this.creatorId = creatorId;
+    this.gameState = gameState;
+    this.isMine = false; // 기본값
+  }
 }
