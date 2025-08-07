@@ -32,6 +32,10 @@ public enum ErrorCode {
   // 데이터베이스 처리
   DB_SAVE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 저장 중 오류가 발생했습니다."),
 
+  // 인증/인가 관련
+  TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
+  INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+
   // 일반
   BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
   INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");

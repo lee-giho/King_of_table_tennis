@@ -1,6 +1,6 @@
 package com.giho.king_of_table_tennis.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.giho.king_of_table_tennis.entity.GameState;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-@Schema(description = "boolean 응답 DTO")
-public class BooleanResponseDTO {
-  private boolean success;
+public class GameStateMessageDTO {
+  private String gameInfoId;
+  private GameState state;
 }

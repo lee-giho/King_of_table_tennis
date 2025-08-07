@@ -1,15 +1,13 @@
 package com.giho.king_of_table_tennis.service;
 
-import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
-import com.giho.king_of_table_tennis.dto.CreateGameRequestDTO;
-import com.giho.king_of_table_tennis.dto.GameParticipationRequestDTO;
-import com.giho.king_of_table_tennis.dto.SelectedGameDateResponseDTO;
+import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.*;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.GameApplicationRepository;
 import com.giho.king_of_table_tennis.repository.GameInfoRepository;
 import com.giho.king_of_table_tennis.repository.GameStateRepository;
+import com.giho.king_of_table_tennis.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,8 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,8 @@ public class GameService {
   private final GameStateRepository gameStateRepository;
 
   private final GameApplicationRepository gameApplicationRepository;
+
+  private final UserRepository userRepository;
 
   @Transactional
   public BooleanResponseDTO createGame(CreateGameRequestDTO createGameRequestDTO) {
@@ -72,16 +75,18 @@ public class GameService {
 
   @Transactional
   public BooleanResponseDTO gameParticipation(GameParticipationRequestDTO gameParticipationRequestDTO) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
 
     GameInfoEntity gameInfoEntity = gameInfoRepository.findById(gameParticipationRequestDTO.getGameInfoId())
       .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
 
-    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(gameParticipationRequestDTO.getGameInfoId())
+    GameStateEntity gameStateEntity = gameStateRepository.findWithLockByGameInfoId(gameParticipationRequestDTO.getGameInfoId())
       .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
 
     if (gameInfoEntity.getAcceptanceType() == AcceptanceType.FCFS) { // 선착순
       if (gameStateEntity.getState() == GameState.RECRUITING) {
-        gameStateEntity.setChallengerId(gameParticipationRequestDTO.getChallengerId());
+        gameStateEntity.setChallengerId(userId);
         gameStateEntity.setState(GameState.WAITING);
 
         gameStateRepository.save(gameStateEntity);
@@ -94,7 +99,7 @@ public class GameService {
 
         gameApplicationEntity.setId(UUID.randomUUID().toString());
         gameApplicationEntity.setGameInfoId(gameParticipationRequestDTO.getGameInfoId());
-        gameApplicationEntity.setApplicantId(gameParticipationRequestDTO.getChallengerId());
+        gameApplicationEntity.setApplicantId(userId);
         gameApplicationEntity.setApplicationAt(LocalDateTime.now());
 
         gameApplicationRepository.save(gameApplicationEntity);
@@ -104,5 +109,47 @@ public class GameService {
     }
 
     return new BooleanResponseDTO(true);
+  }
+
+  public RecruitingGameListDTO getRecruitingGameList(String tableTennisCourtId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    List<RecruitingGameDTO> recruitingGames = gameInfoRepository.findRecruitingGamesByPlaceAndDateAfter(tableTennisCourtId, LocalDateTime.now());
+
+    for (RecruitingGameDTO dto : recruitingGames) {
+      if (dto.getCreatorId().equals(userId)) {
+        dto.setMine(true);
+      }
+    }
+
+    return new RecruitingGameListDTO(recruitingGames);
+  }
+
+  public GameDetailInfo getGameDetailInfo(String gameInfoId) {
+
+    GameInfoEntity gameInfoEntity = gameInfoRepository.findById(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
+
+    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    List<String> userIds = new ArrayList<>();
+    userIds.add(gameStateEntity.getDefenderId());
+    if (gameStateEntity.getChallengerId() != null) {
+      userIds.add(gameStateEntity.getChallengerId());
+    }
+
+    List<UserInfo> users = userRepository.findUserInfoByIds(userIds);
+
+    Map<String, UserInfo> userMap = users.stream()
+      .collect(Collectors.toMap(UserInfo::getId, user -> user));
+
+    UserInfo defender = userMap.get(gameStateEntity.getDefenderId());
+    UserInfo challenger = gameStateEntity.getChallengerId() != null
+      ? userMap.get(gameStateEntity.getChallengerId())
+      : null;
+
+    return new GameDetailInfo(defender, challenger, gameInfoEntity, gameStateEntity);
   }
 }

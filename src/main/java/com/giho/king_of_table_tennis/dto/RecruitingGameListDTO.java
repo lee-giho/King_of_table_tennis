@@ -5,10 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
-@Schema(description = "boolean 응답 DTO")
-public class BooleanResponseDTO {
-  private boolean success;
+@Schema(description = "경기 정보 리스트 DTO")
+public class RecruitingGameListDTO {
+  private List<RecruitingGameDTO> recruitingGames;
 }
