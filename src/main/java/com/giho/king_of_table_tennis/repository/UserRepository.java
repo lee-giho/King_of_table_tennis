@@ -1,5 +1,6 @@
 package com.giho.king_of_table_tennis.repository;
 
+import com.giho.king_of_table_tennis.dto.GameUserInfo;
 import com.giho.king_of_table_tennis.dto.UserInfo;
 import com.giho.king_of_table_tennis.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,4 +26,13 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
     WHERE u.id IN :userIds
   """)
   List<UserInfo> findUserInfoByIds(@Param("userIds") List<String> userIds);
+
+  List<UserEntity> findByIdIn(List<String> userIds);
+
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.GameUserInfo(u.id, u.nickName, u.profileImage, tti.racketType)
+    FROM UserEntity u JOIN UserTableTennisInfoEntity tti ON u.id = tti.userId
+    WHERE u.id IN :userIds
+  """)
+  List<GameUserInfo> findGameUserInfoByIds(@Param("userIds") List<String> userIds);
 }
