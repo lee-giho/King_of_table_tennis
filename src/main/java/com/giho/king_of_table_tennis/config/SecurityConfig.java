@@ -58,6 +58,7 @@ public class SecurityConfig {
           "/api/auth/**",
           "/image/profile/**",
           "/ws/**",
+          "/signaling/**",
           "/topic/**",
           "/app/**",
           "/login"

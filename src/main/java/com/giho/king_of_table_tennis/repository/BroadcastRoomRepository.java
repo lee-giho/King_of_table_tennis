@@ -3,13 +3,15 @@ package com.giho.king_of_table_tennis.repository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.giho.king_of_table_tennis.dto.BroadcastRoomInfo;
+import com.giho.king_of_table_tennis.exception.CustomException;
+import com.giho.king_of_table_tennis.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,13 +22,56 @@ public class BroadcastRoomRepository {
   private final StringRedisTemplate stringRedisTemplate;
   private final ObjectMapper objectMapper;
 
-  public void saveRoom(BroadcastRoomInfo broadcastRoomInfo) {
-    String key = ROOM_KEY_PREFIX + broadcastRoomInfo.getRoomId();
+  private String getKey(String roomId) {
+    return ROOM_KEY_PREFIX + roomId;
+  }
+
+  private BroadcastRoomInfo readJson(String json) {
     try {
-      String json = objectMapper.writeValueAsString(broadcastRoomInfo);
-      stringRedisTemplate.opsForValue().set(key, json);
-    } catch (JsonProcessingException e) {
-      throw new IllegalStateException("BroadcastRoomInfo를 json으로 변환하는 중 오류가 발생했습니다.");
+      return objectMapper.readValue(json, BroadcastRoomInfo.class);
+    } catch (IOException e) {
+      throw new CustomException(ErrorCode.JSON_PARSE_FAILED);
     }
+  }
+
+  private String writeJson(BroadcastRoomInfo broadcastRoomInfo) {
+    try {
+      return objectMapper.writeValueAsString(broadcastRoomInfo);
+    } catch (JsonProcessingException e) {
+      throw new CustomException(ErrorCode.JSON_SERIALIZE_FAILED);
+    }
+  }
+
+  // 저장
+  public void saveRoom(BroadcastRoomInfo broadcastRoomInfo) {
+    String key = getKey(broadcastRoomInfo.getRoomId());
+    String json = writeJson(broadcastRoomInfo);
+    stringRedisTemplate.opsForValue().set(key, json);
+  }
+
+  // 조회
+  public Optional<BroadcastRoomInfo> findRoom(String roomId) {
+    String json = stringRedisTemplate.opsForValue().get(getKey(roomId));
+    if (json.isEmpty()) return Optional.empty();
+    return Optional.of(readJson(json));
+  }
+
+  // 존재 여부
+  public boolean exists(String roomId) {
+    Boolean exists = stringRedisTemplate.hasKey(getKey(roomId));
+    return Boolean.TRUE.equals(exists);
+  }
+
+  // 삭제
+  public void deleteRoom(String roomId) {
+    stringRedisTemplate.delete(getKey(roomId));
+  }
+
+  // 부분 업데이트
+  public void patchRoom(String roomId, Consumer<BroadcastRoomInfo> updater) {
+    BroadcastRoomInfo current = findRoom(roomId)
+      .orElseThrow(() -> new CustomException(ErrorCode.BROADCAST_ROOM_NOT_FOUND));
+    updater.accept(current);
+    saveRoom(current);
   }
 }
