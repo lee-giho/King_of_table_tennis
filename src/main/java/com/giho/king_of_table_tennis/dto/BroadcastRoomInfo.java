@@ -14,17 +14,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Schema(description = "경기 방송 방 정보 DTO")
 public class BroadcastRoomInfo {
-  private String roomId;
-  private String roomName;
   private String gameInfoId;
+  private String roomName;
   private GameUserInfo defender;
   private GameUserInfo challenger;
   private LocalDateTime createdAt;
 
-  public BroadcastRoomInfo(String roomId, String roomName, String gameInfoId, GameUserInfo defender, GameUserInfo challenger) {
-    this.roomId = roomId;
-    this.roomName = roomName;
+  public BroadcastRoomInfo(String gameInfoId, String roomName, GameUserInfo defender, GameUserInfo challenger) {
     this.gameInfoId = gameInfoId;
+    this.roomName = roomName;
     this.defender = defender;
     this.challenger = challenger;
     this.createdAt = LocalDateTime.now();

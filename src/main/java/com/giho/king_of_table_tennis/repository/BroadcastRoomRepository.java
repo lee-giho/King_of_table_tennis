@@ -22,8 +22,8 @@ public class BroadcastRoomRepository {
   private final StringRedisTemplate stringRedisTemplate;
   private final ObjectMapper objectMapper;
 
-  private String getKey(String roomId) {
-    return ROOM_KEY_PREFIX + roomId;
+  private String getKey(String gameInfoId) {
+    return ROOM_KEY_PREFIX + gameInfoId;
   }
 
   private BroadcastRoomInfo readJson(String json) {
@@ -44,14 +44,14 @@ public class BroadcastRoomRepository {
 
   // 저장
   public void saveRoom(BroadcastRoomInfo broadcastRoomInfo) {
-    String key = getKey(broadcastRoomInfo.getRoomId());
+    String key = getKey(broadcastRoomInfo.getGameInfoId());
     String json = writeJson(broadcastRoomInfo);
     stringRedisTemplate.opsForValue().set(key, json);
   }
 
   // 조회
-  public Optional<BroadcastRoomInfo> findRoom(String roomId) {
-    String json = stringRedisTemplate.opsForValue().get(getKey(roomId));
+  public Optional<BroadcastRoomInfo> findRoom(String gameInfoId) {
+    String json = stringRedisTemplate.opsForValue().get(getKey(gameInfoId));
     if (json.isEmpty()) return Optional.empty();
     return Optional.of(readJson(json));
   }

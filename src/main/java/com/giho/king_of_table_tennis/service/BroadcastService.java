@@ -52,19 +52,23 @@ public class BroadcastService {
       .findFirst()
       .orElse(null);
 
-    String broadcastRoomId = UUID.randomUUID().toString();
     String broadcastRoomName = defender.getNickName() + " VS " + challenger.getNickName();
 
     BroadcastRoomInfo broadcastRoomInfo = new BroadcastRoomInfo(
-      broadcastRoomId,
-      broadcastRoomName,
       createBroadcastRoomRequest.getGameInfoId(),
+      broadcastRoomName,
       defender,
       challenger
     );
 
     broadcastRoomRepository.saveRoom(broadcastRoomInfo);
 
+    return broadcastRoomInfo;
+  }
+
+  public BroadcastRoomInfo enterBroadcast(String gameInfoId) {
+    BroadcastRoomInfo broadcastRoomInfo = broadcastRoomRepository.findRoom(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.BROADCAST_ROOM_NOT_FOUND));
     return broadcastRoomInfo;
   }
 }

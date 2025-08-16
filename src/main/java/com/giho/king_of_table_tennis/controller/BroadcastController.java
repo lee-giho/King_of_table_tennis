@@ -12,10 +12,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,6 +34,21 @@ public class BroadcastController {
   @PostMapping("")
   public ResponseEntity<BroadcastRoomInfo> startBroadcast(@RequestBody CreateBroadcastRoomRequest createBroadcastRoomRequest) {
     BroadcastRoomInfo broadcastRoomInfo = broadcastService.saveBroadcastRoom(createBroadcastRoomRequest);
+    return ResponseEntity.ok(broadcastRoomInfo);
+  }
+
+  @Operation(summary = "경기 방송 입장", description = "경기 방송을 입장하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "Redis에 저장되어 있는 경기 방송 방(방송 중인) 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BroadcastRoomInfo.class)
+    )
+  )
+  @GetMapping("/enter/{gameInfoId}")
+  public ResponseEntity<BroadcastRoomInfo> enterBroadcast(@PathVariable String gameInfoId) {
+    BroadcastRoomInfo broadcastRoomInfo = broadcastService.enterBroadcast(gameInfoId);
     return ResponseEntity.ok(broadcastRoomInfo);
   }
 }
