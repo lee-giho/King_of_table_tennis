@@ -2,7 +2,7 @@ package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
 import com.giho.king_of_table_tennis.dto.BroadcastRoomInfo;
-import com.giho.king_of_table_tennis.dto.CreateBroadcastRoomRequest;
+import com.giho.king_of_table_tennis.dto.BroadcastRoomRequest;
 import com.giho.king_of_table_tennis.service.BroadcastService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,7 +32,7 @@ public class BroadcastController {
     )
   )
   @PostMapping("")
-  public ResponseEntity<BroadcastRoomInfo> startBroadcast(@RequestBody CreateBroadcastRoomRequest createBroadcastRoomRequest) {
+  public ResponseEntity<BroadcastRoomInfo> startBroadcast(@RequestBody BroadcastRoomRequest createBroadcastRoomRequest) {
     BroadcastRoomInfo broadcastRoomInfo = broadcastService.saveBroadcastRoom(createBroadcastRoomRequest);
     return ResponseEntity.ok(broadcastRoomInfo);
   }
@@ -48,7 +48,13 @@ public class BroadcastController {
   )
   @GetMapping("/enter/{gameInfoId}")
   public ResponseEntity<BroadcastRoomInfo> enterBroadcast(@PathVariable String gameInfoId) {
-    BroadcastRoomInfo broadcastRoomInfo = broadcastService.enterBroadcast(gameInfoId);
+    BroadcastRoomInfo broadcastRoomInfo = broadcastService.findBroadcast(gameInfoId);
     return ResponseEntity.ok(broadcastRoomInfo);
+  }
+
+  @DeleteMapping("")
+  public ResponseEntity<BooleanResponseDTO> endBroadcast(@RequestBody BroadcastRoomRequest broadcastRoomRequest) {
+    BooleanResponseDTO booleanResponseDTO = broadcastService.deleteBroadcast(broadcastRoomRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
   }
 }

@@ -18,6 +18,7 @@ public class BroadcastRoomInfo {
   private String roomName;
   private GameUserInfo defender;
   private GameUserInfo challenger;
+  private boolean leftIsDefender;
   private LocalDateTime createdAt;
 
   public BroadcastRoomInfo(String gameInfoId, String roomName, GameUserInfo defender, GameUserInfo challenger) {
@@ -25,6 +26,7 @@ public class BroadcastRoomInfo {
     this.roomName = roomName;
     this.defender = defender;
     this.challenger = challenger;
+    this.leftIsDefender = true;
     this.createdAt = LocalDateTime.now();
   }
 }

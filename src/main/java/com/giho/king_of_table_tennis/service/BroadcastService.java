@@ -1,11 +1,12 @@
 package com.giho.king_of_table_tennis.service;
 
+import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
 import com.giho.king_of_table_tennis.dto.BroadcastRoomInfo;
-import com.giho.king_of_table_tennis.dto.CreateBroadcastRoomRequest;
+import com.giho.king_of_table_tennis.dto.BroadcastRoomRequest;
 import com.giho.king_of_table_tennis.dto.GameUserInfo;
 import com.giho.king_of_table_tennis.entity.GameInfoEntity;
+import com.giho.king_of_table_tennis.entity.GameState;
 import com.giho.king_of_table_tennis.entity.GameStateEntity;
-import com.giho.king_of_table_tennis.entity.UserEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.BroadcastRoomRepository;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class BroadcastService {
 
   private final BroadcastRoomRepository broadcastRoomRepository;
 
-  public BroadcastRoomInfo saveBroadcastRoom(CreateBroadcastRoomRequest createBroadcastRoomRequest) {
+  public BroadcastRoomInfo saveBroadcastRoom(BroadcastRoomRequest createBroadcastRoomRequest) {
 
     GameInfoEntity gameInfoEntity = gameInfoRepository.findById(createBroadcastRoomRequest.getGameInfoId())
       .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
@@ -66,9 +66,22 @@ public class BroadcastService {
     return broadcastRoomInfo;
   }
 
-  public BroadcastRoomInfo enterBroadcast(String gameInfoId) {
+  public BroadcastRoomInfo findBroadcast(String gameInfoId) {
     BroadcastRoomInfo broadcastRoomInfo = broadcastRoomRepository.findRoom(gameInfoId)
       .orElseThrow(() -> new CustomException(ErrorCode.BROADCAST_ROOM_NOT_FOUND));
     return broadcastRoomInfo;
+  }
+
+  public BooleanResponseDTO deleteBroadcast(BroadcastRoomRequest broadcastRoomRequest) {
+    broadcastRoomRepository.deleteRoom(broadcastRoomRequest.getGameInfoId());
+
+    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(broadcastRoomRequest.getGameInfoId())
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    gameStateEntity.setState(GameState.END);
+
+    gameStateRepository.save(gameStateEntity);
+
+    return new BooleanResponseDTO(true);
   }
 }

@@ -1,6 +1,7 @@
 package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.GameUserInfo;
+import com.giho.king_of_table_tennis.dto.SeatChangeDTO;
 import com.giho.king_of_table_tennis.dto.UpdateScoreRequest;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
@@ -63,7 +64,7 @@ public class BroadcastSignalingController {
 
   @MessageMapping("/broadcast/score/{roomId}")
   @SendTo("/topic/broadcast/score/{roomId}")
-  public UpdateScoreRequest updateScore(UpdateScoreRequest updateScoreRequest, @DestinationVariable(value = "roomId") String roomId) {
+  public UpdateScoreRequest updateScore(@Payload UpdateScoreRequest updateScoreRequest, @DestinationVariable(value = "roomId") String roomId) {
     broadcastRoomRepository.patchRoom(roomId, room -> {
       GameUserInfo target = "defender".equalsIgnoreCase(updateScoreRequest.getSide())
         ? room.getDefender()
@@ -72,5 +73,14 @@ public class BroadcastSignalingController {
       target.setScore(updateScoreRequest.getNewScore());
     });
     return updateScoreRequest;
+  }
+
+  @MessageMapping("/broadcast/leftIsDefender/{roomId}")
+  @SendTo("/topic/broadcast/leftIsDefender/{roomId}")
+  public SeatChangeDTO changeSeats(@Payload SeatChangeDTO seatChangeDTO, @DestinationVariable(value = "roomId") String roomId) {
+    broadcastRoomRepository.patchRoom(roomId, room -> {
+      room.setLeftIsDefender(seatChangeDTO.isLeftIsDefender());
+    });
+    return seatChangeDTO;
   }
 }

@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-@Schema(description = "경기 방송 방 만들기 위한 요청 DTO")
-public class CreateBroadcastRoomRequest {
-  private String gameInfoId;
+@Schema(description = "경기 중 자리바꿈 정보 DTO")
+public class SeatChangeDTO {
+  private boolean leftIsDefender;
 }
