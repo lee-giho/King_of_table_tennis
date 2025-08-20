@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @AllArgsConstructor
-public class UpdateScoreRequest {
+public class UpdateSetScoreDTO {
   private String side;
-  private int newScore;
+  private int newSetScore;
 }

@@ -1,13 +1,9 @@
 package com.giho.king_of_table_tennis.controller;
 
-import com.giho.king_of_table_tennis.dto.GameUserInfo;
-import com.giho.king_of_table_tennis.dto.SeatChangeDTO;
-import com.giho.king_of_table_tennis.dto.UpdateScoreRequest;
+import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.BroadcastRoomRepository;
-import com.giho.king_of_table_tennis.repository.GameStateRepository;
-import com.giho.king_of_table_tennis.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -56,15 +52,17 @@ public class BroadcastSignalingController {
 
   @MessageMapping("/broadcast/end/{roomId}")
   @SendTo("/topic/broadcast/end/{roomId}")
-  public String endBroadcast(@Payload String message,
-                             @DestinationVariable(value = "roomId") String roomId) {
+  public EndGameDTO endBroadcast(@Payload EndGameDTO endGameDTO, @DestinationVariable(value = "roomId") String roomId) {
     log.info("[BROADCAST End] roomId={}", roomId);
-    return message;
+
+
+
+    return endGameDTO;
   }
 
   @MessageMapping("/broadcast/score/{roomId}")
   @SendTo("/topic/broadcast/score/{roomId}")
-  public UpdateScoreRequest updateScore(@Payload UpdateScoreRequest updateScoreRequest, @DestinationVariable(value = "roomId") String roomId) {
+  public UpdateScoreDTO updateScore(@Payload UpdateScoreDTO updateScoreRequest, @DestinationVariable(value = "roomId") String roomId) {
     broadcastRoomRepository.patchRoom(roomId, room -> {
       GameUserInfo target = "defender".equalsIgnoreCase(updateScoreRequest.getSide())
         ? room.getDefender()
@@ -75,6 +73,24 @@ public class BroadcastSignalingController {
     return updateScoreRequest;
   }
 
+  @MessageMapping("/broadcast/setScore/{roomId}")
+  @SendTo("/topic/broadcast/setScore/{roomId}")
+  public UpdateSetScoreDTO updateSetScore(@Payload UpdateSetScoreDTO updateSetScoreRequest, @DestinationVariable(value = "roomId") String roomId) {
+    broadcastRoomRepository.patchRoom(roomId, room -> {
+      GameUserInfo defender = "defender".equalsIgnoreCase(updateSetScoreRequest.getSide())
+        ? room.getDefender()
+        : room.getChallenger();
+      GameUserInfo challenger = "defender".equalsIgnoreCase(updateSetScoreRequest.getSide())
+        ? room.getChallenger()
+        : room.getDefender();
+      if (defender == null) throw new CustomException(ErrorCode.BROADCAST_PLAYER_NOT_FOUND);
+      defender.setSetScore(updateSetScoreRequest.getNewSetScore());
+      defender.setScore(0);
+      challenger.setScore(0);
+    });
+    return updateSetScoreRequest;
+  }
+
   @MessageMapping("/broadcast/leftIsDefender/{roomId}")
   @SendTo("/topic/broadcast/leftIsDefender/{roomId}")
   public SeatChangeDTO changeSeats(@Payload SeatChangeDTO seatChangeDTO, @DestinationVariable(value = "roomId") String roomId) {
@@ -82,5 +98,11 @@ public class BroadcastSignalingController {
       room.setLeftIsDefender(seatChangeDTO.isLeftIsDefender());
     });
     return seatChangeDTO;
+  }
+
+  @MessageMapping("/broadcast/message/{roomId}")
+  @SendTo("/topic/broadcast/message/{roomId}")
+  public String sendMessage(@Payload String message) {
+    return message;
   }
 }
