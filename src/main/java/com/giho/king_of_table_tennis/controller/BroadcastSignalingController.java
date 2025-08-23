@@ -1,9 +1,14 @@
 package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.*;
+import com.giho.king_of_table_tennis.entity.GameInfoEntity;
+import com.giho.king_of_table_tennis.entity.GameState;
+import com.giho.king_of_table_tennis.entity.GameStateEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.BroadcastRoomRepository;
+import com.giho.king_of_table_tennis.repository.GameInfoRepository;
+import com.giho.king_of_table_tennis.repository.GameStateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -20,6 +25,8 @@ public class BroadcastSignalingController {
 
   private final SimpMessagingTemplate messagingTemplate;
   private final BroadcastRoomRepository broadcastRoomRepository;
+  private final GameStateRepository gameStateRepository;
+  private final GameInfoRepository gameInfoRepository;
 
   @MessageMapping("/broadcast/peer/offer/{roomId}")
   public void handleOffer(@Payload String offer,
@@ -52,12 +59,10 @@ public class BroadcastSignalingController {
 
   @MessageMapping("/broadcast/end/{roomId}")
   @SendTo("/topic/broadcast/end/{roomId}")
-  public EndGameDTO endBroadcast(@Payload EndGameDTO endGameDTO, @DestinationVariable(value = "roomId") String roomId) {
+  public String endBroadcast(@Payload String message,
+                             @DestinationVariable(value = "roomId") String roomId) {
     log.info("[BROADCAST End] roomId={}", roomId);
-
-
-
-    return endGameDTO;
+    return message;
   }
 
   @MessageMapping("/broadcast/score/{roomId}")
@@ -98,6 +103,27 @@ public class BroadcastSignalingController {
       room.setLeftIsDefender(seatChangeDTO.isLeftIsDefender());
     });
     return seatChangeDTO;
+  }
+
+  @MessageMapping("/broadcast/result/{roomId}")
+  @SendTo("/topic/broadcast/result/{roomId}")
+  public EndGameDTO endGame(@Payload EndGameDTO endGameDTO, @DestinationVariable(value = "roomId") String roomId) {
+
+    BroadcastRoomInfo broadcastRoomInfo = broadcastRoomRepository.findRoom(roomId)
+      .orElseThrow(() -> new CustomException(ErrorCode.BROADCAST_ROOM_NOT_FOUND));
+
+    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(roomId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    GameInfoEntity gameInfoEntity = gameInfoRepository.findById(roomId)
+        .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
+
+    gameStateEntity.setDefenderScore(broadcastRoomInfo.getDefender().getScore() * gameInfoEntity.getGameSet());
+    gameStateEntity.setChallengerScore(broadcastRoomInfo.getChallenger().getScore() * gameInfoEntity.getGameSet());
+    gameStateEntity.setState(GameState.END);
+    gameStateRepository.save(gameStateEntity);
+
+    return endGameDTO;
   }
 
   @MessageMapping("/broadcast/message/{roomId}")
