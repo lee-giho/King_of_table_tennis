@@ -9,16 +9,16 @@ import com.giho.king_of_table_tennis.repository.GameInfoRepository;
 import com.giho.king_of_table_tennis.repository.GameStateRepository;
 import com.giho.king_of_table_tennis.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -151,5 +151,51 @@ public class GameService {
       : null;
 
     return new GameDetailInfo(defender, challenger, gameInfoEntity, gameStateEntity);
+  }
+
+  public Page<GameDetailInfo> getGameDetailInfoByPage(Pageable pageable, String place) {
+    LocalDateTime now = LocalDateTime.now();
+
+    Page<GameInfoEntity> gameInfoPage = gameInfoRepository
+      .findByPlaceAndGameDateAfterOrderByGameDateAsc(place, now, pageable);
+
+    if (gameInfoPage.isEmpty()) {
+      return Page.empty(pageable);
+    }
+
+    List<GameInfoEntity> gameInfoList = gameInfoPage.getContent();
+    List<String> gameInfoIdList = gameInfoList.stream().map(GameInfoEntity::getId).toList();
+
+    List<GameStateEntity> gameStateList = gameStateRepository.findAllByGameInfoIdIn(gameInfoIdList);
+    Map<String, GameStateEntity> gameStateByGameId = gameStateList.stream()
+      .collect(Collectors.toMap(GameStateEntity::getGameInfoId, s -> s));
+
+    Set<String> userIds = new HashSet<>();
+    for (GameStateEntity s : gameStateList) {
+      userIds.add(s.getDefenderId());
+      if (s.getChallengerId() != null) {
+        userIds.add(s.getChallengerId());
+      }
+    }
+    List<UserInfo> userInfoList = userRepository.findUserInfoByIds(new ArrayList<>(userIds));
+    Map<String, UserInfo> userById = userInfoList.stream()
+      .collect(Collectors.toMap(UserInfo::getId, u -> u));
+
+    List<GameDetailInfo> gameDetailInfoList = new ArrayList<>();
+    for (GameInfoEntity gameInfo : gameInfoList) {
+      GameStateEntity gameState = gameStateByGameId.get(gameInfo.getId());
+      if (gameState == null) {
+        continue;
+      }
+
+      UserInfo defender = userById.get(gameState.getDefenderId());
+      UserInfo challenger = (gameState.getChallengerId() == null)
+        ? null
+        : userById.get(gameState.getChallengerId());
+
+      gameDetailInfoList.add(new GameDetailInfo(defender, challenger, gameInfo, gameState));
+    }
+
+    return new PageImpl<>(gameDetailInfoList, pageable, gameInfoPage.getTotalElements());
   }
 }

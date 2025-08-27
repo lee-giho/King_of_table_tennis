@@ -5,6 +5,7 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface GameStateRepository extends JpaRepository<GameStateEntity, String> {
@@ -13,4 +14,6 @@ public interface GameStateRepository extends JpaRepository<GameStateEntity, Stri
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   Optional<GameStateEntity> findWithLockByGameInfoId(String gameInfoId);
+
+  List<GameStateEntity> findAllByGameInfoIdIn(List<String> gameInfoIds);
 }

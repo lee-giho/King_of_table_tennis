@@ -1,7 +1,10 @@
 package com.giho.king_of_table_tennis.repository;
 
+import com.giho.king_of_table_tennis.dto.GameDetailInfo;
 import com.giho.king_of_table_tennis.dto.RecruitingGameDTO;
 import com.giho.king_of_table_tennis.entity.GameInfoEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +24,6 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
     AND g.gameDate > :now
   """)
   List<RecruitingGameDTO> findRecruitingGamesByPlaceAndDateAfter(@Param("place") String place, @Param("now") LocalDateTime now);
+
+  Page<GameInfoEntity> findByPlaceAndGameDateAfterOrderByGameDateAsc(String place, LocalDateTime now, Pageable pageable);
 }
