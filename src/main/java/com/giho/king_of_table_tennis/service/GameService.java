@@ -152,7 +152,10 @@ public class GameService {
     return new GameDetailInfo(defender, challenger, gameInfoEntity, gameStateEntity);
   }
 
-  public Page<GameDetailInfo> getGameDetailInfoByPage(Pageable pageable, String place) {
+  public Page<GameDetailInfoByPage> getGameDetailInfoByPage(Pageable pageable, String place) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
     LocalDateTime now = LocalDateTime.now();
 
     Page<GameInfoEntity> gameInfoPage = gameInfoRepository
@@ -189,7 +192,7 @@ public class GameService {
     Map<String, String> placeNameById = tableTennisCourtList.stream()
       .collect(Collectors.toMap(TableTennisCourtEntity::getId, TableTennisCourtEntity::getName));
 
-    List<GameDetailInfo> gameDetailInfoList = new ArrayList<>();
+    List<GameDetailInfoByPage> gameDetailInfoList = new ArrayList<>();
     for (GameInfoEntity gameInfo : gameInfoList) {
 
       String placeName = placeNameById.getOrDefault(gameInfo.getPlace(), gameInfo.getPlace());
@@ -205,7 +208,9 @@ public class GameService {
         ? null
         : userById.get(gameState.getChallengerId());
 
-      gameDetailInfoList.add(new GameDetailInfo(defender, challenger, cloneGameInfo, gameState));
+      boolean isMine = defender.getId().equals(userId);
+
+      gameDetailInfoList.add(new GameDetailInfoByPage(defender, challenger, cloneGameInfo, gameState, isMine));
     }
 
     return new PageImpl<>(gameDetailInfoList, pageable, gameInfoPage.getTotalElements());

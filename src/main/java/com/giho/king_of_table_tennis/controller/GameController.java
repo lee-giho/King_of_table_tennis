@@ -108,15 +108,15 @@ public class GameController {
     )
   )
   @GetMapping("/detailInfo/latest/{place}")
-  public ResponseEntity<PageResponse<GameDetailInfo>> getGameDetailInfoByPage(
+  public ResponseEntity<PageResponse<GameDetailInfoByPage>> getGameDetailInfoByPage(
     @RequestParam(name = "page", defaultValue = "0") int page,
     @RequestParam(name = "size", defaultValue = "1") int size,
     @PathVariable String place) {
 
     Pageable pageable = PageRequest.of(page, size);
-    Page<GameDetailInfo> gameDetailInfoPage = gameService.getGameDetailInfoByPage(pageable, place);
+    Page<GameDetailInfoByPage> gameDetailInfoPage = gameService.getGameDetailInfoByPage(pageable, place);
 
-    PageResponse<GameDetailInfo> body = new PageResponse<>(
+    PageResponse<GameDetailInfoByPage> body = new PageResponse<>(
       gameDetailInfoPage.getContent(),
       gameDetailInfoPage.getTotalPages(),
       gameDetailInfoPage.getTotalElements(),
