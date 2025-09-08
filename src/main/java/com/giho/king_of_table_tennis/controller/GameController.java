@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -93,5 +96,34 @@ public class GameController {
   public ResponseEntity<GameDetailInfo> getGameDetailInfo(@PathVariable String gameInfoId) {
     GameDetailInfo gameDetailInfo = gameService.getGameDetailInfo(gameInfoId);
     return ResponseEntity.ok(gameDetailInfo);
+  }
+
+  @Operation(summary = "페이징을 통해 경기에 대한 자세한 정보 한 개씩 불러오기", description = "참가자 정보와 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "경기에 대한 참가자와 경기 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = GameDetailInfo.class)
+    )
+  )
+  @GetMapping("/detailInfo/latest/{place}")
+  public ResponseEntity<PageResponse<GameDetailInfoByPage>> getGameDetailInfoByPage(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "1") int size,
+    @PathVariable String place) {
+
+    Pageable pageable = PageRequest.of(page, size);
+    Page<GameDetailInfoByPage> gameDetailInfoPage = gameService.getGameDetailInfoByPage(pageable, place);
+
+    PageResponse<GameDetailInfoByPage> body = new PageResponse<>(
+      gameDetailInfoPage.getContent(),
+      gameDetailInfoPage.getTotalPages(),
+      gameDetailInfoPage.getTotalElements(),
+      gameDetailInfoPage.getNumber(),
+      gameDetailInfoPage.getSize()
+    );
+
+    return ResponseEntity.ok(body);
   }
 }

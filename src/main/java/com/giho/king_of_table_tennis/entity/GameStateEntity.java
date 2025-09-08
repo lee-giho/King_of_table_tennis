@@ -24,7 +24,7 @@ public class GameStateEntity {
   private int defenderScore;
 
   @Column(name = "challenger_score", nullable = true)
-  private int challenger_score;
+  private int challengerScore;
 
   @Column(name = "state", nullable = false)
   @Enumerated(EnumType.STRING)

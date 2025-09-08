@@ -36,6 +36,14 @@ public enum ErrorCode {
   TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
   INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
 
+  // JSON
+  JSON_PARSE_FAILED(HttpStatus.BAD_REQUEST, "JSON 파싱 실패"),
+  JSON_SERIALIZE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JSON 직렬화 실패"),
+
+  // 라이브 방
+  BROADCAST_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "라이브 방을 찾을 수 없습니다."),
+  BROADCAST_PLAYER_NOT_FOUND(HttpStatus.NOT_FOUND, "라이브에서 해당 사용자를 찾을 수 없습니다."),
+
   // 일반
   BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
   INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
