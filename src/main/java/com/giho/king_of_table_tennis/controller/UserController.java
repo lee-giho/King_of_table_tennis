@@ -84,4 +84,19 @@ public class UserController {
     RefreshAccessTokenResponseDTO refreshAccessTokenResponseDTO = tokenService.refreshAccessTokenByRefreshToken(refreshToken);
     return ResponseEntity.ok(refreshAccessTokenResponseDTO);
   }
+
+  @Operation(summary = "간단한 내 정보 가져오기", description = "마이페이지에서 보여줄 간단한 내 정보 반환하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "간단한 내 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = MySimpleInfoResponse.class)
+    )
+  )
+  @GetMapping("/myInfo/simple")
+  public ResponseEntity<MySimpleInfoResponse> getMySimpleInfo() {
+    MySimpleInfoResponse myInfoResponse = userService.getMySimpleInfo();
+    return ResponseEntity.ok(myInfoResponse);
+  }
 }

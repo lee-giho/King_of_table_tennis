@@ -1,9 +1,6 @@
 package com.giho.king_of_table_tennis.service;
 
-import com.giho.king_of_table_tennis.dto.BooleanResponseDTO;
-import com.giho.king_of_table_tennis.dto.CheckExistsResponseDTO;
-import com.giho.king_of_table_tennis.dto.ProfileRegistrationRequestDTO;
-import com.giho.king_of_table_tennis.dto.TableTennisInfoRegistrationRequestDTO;
+import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.UserEntity;
 import com.giho.king_of_table_tennis.entity.UserTableTennisInfoEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
@@ -80,5 +77,14 @@ public class UserService {
     userTableTennisInfoRepository.save(userTableTennisInfoEntity);
 
     return new BooleanResponseDTO(true);
+  }
+
+  public MySimpleInfoResponse getMySimpleInfo() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    MySimpleInfoResponse mySimpleInfoResponse = userRepository.findMySimpleInfoById(userId);
+
+    return mySimpleInfoResponse;
   }
 }
