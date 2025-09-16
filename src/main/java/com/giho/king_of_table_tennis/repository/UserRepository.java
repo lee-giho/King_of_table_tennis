@@ -28,6 +28,13 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
   """)
   List<UserInfo> findUserInfoByIds(@Param("userIds") List<String> userIds);
 
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(u.id, u.name, u.nickName, u.email, u.profileImage, tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount)
+    FROM UserEntity u JOIN UserTableTennisInfoEntity tti ON u.id = tti.userId
+    WHERE u.id = :id
+  """)
+  UserInfo findUserInfoById(String id);
+
   List<UserEntity> findByIdIn(List<String> userIds);
 
   @Query("""

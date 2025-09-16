@@ -99,4 +99,19 @@ public class UserController {
     MySimpleInfoResponse myInfoResponse = userService.getMySimpleInfo();
     return ResponseEntity.ok(myInfoResponse);
   }
+
+  @Operation(summary = "내 정보 가져오기", description = "마이페이지에서 보여줄 민감한 정보 제외한 내 정보 반환하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "내 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = UserInfo.class)
+    )
+  )
+  @GetMapping("/myInfo")
+  public ResponseEntity<UserInfo> getUserInfo() {
+    UserInfo userInfo = userService.getUserInfo();
+    return ResponseEntity.ok(userInfo);
+  }
 }

@@ -87,4 +87,13 @@ public class UserService {
 
     return mySimpleInfoResponse;
   }
+
+  public UserInfo getUserInfo () {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserInfo userInfo = userRepository.findUserInfoById(userId);
+
+    return userInfo;
+  }
 }
