@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserTableTennisInfoRepository extends JpaRepository<UserTableTennisInfoEntity, String> {
 
   boolean existsByUserId(String userId);
+
+
 }

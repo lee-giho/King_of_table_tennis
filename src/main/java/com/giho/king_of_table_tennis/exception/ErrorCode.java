@@ -13,6 +13,7 @@ public enum ErrorCode {
   USER_ALREADY_EXIST(HttpStatus.CONFLICT, "이미 존재하는 사용자입니다."),
 
   // 탁구 정보
+  TABLE_TENNIS_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자에 대한 탁구 정보를 찾을 수 없습니다."),
   TABLE_TENNIS_INFO_ALREADY_EXIST(HttpStatus.CONFLICT, "해당 사용자에 대한 탁구 정보가 이미 존재합니다."),
 
   // 탁구 경기

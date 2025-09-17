@@ -112,4 +112,20 @@ public class UserService {
       return new BooleanResponseDTO(false);
     }
   }
+
+  public BooleanResponseDTO changeRacketType(ChangeValueRequest changeValueRequest) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserTableTennisInfoEntity userTableTennisInfoEntity = userTableTennisInfoRepository.findById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.TABLE_TENNIS_INFO_NOT_FOUND));
+
+    try {
+      userTableTennisInfoEntity.setRacketType(changeValueRequest.getChangeValue());
+      userTableTennisInfoRepository.save(userTableTennisInfoEntity);
+      return new BooleanResponseDTO(true);
+    } catch (Exception e) {
+      return new BooleanResponseDTO(false);
+    }
+  }
 }

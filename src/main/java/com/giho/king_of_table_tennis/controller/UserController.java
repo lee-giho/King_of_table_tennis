@@ -129,4 +129,19 @@ public class UserController {
     BooleanResponseDTO booleanResponseDTO = userService.changeNickName(changeValueRequest);
     return ResponseEntity.ok(booleanResponseDTO);
   }
+
+  @Operation(summary = "라켓 타입 변경하기", description = "기존의 라켓 타입을 새로운 라켓 타입으로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "라켓 타입 변경하기",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PatchMapping("/racketType")
+  public ResponseEntity<BooleanResponseDTO> changeRacketType(@RequestBody ChangeValueRequest changeValueRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.changeRacketType(changeValueRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
 }
