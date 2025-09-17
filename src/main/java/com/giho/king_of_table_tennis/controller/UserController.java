@@ -144,4 +144,34 @@ public class UserController {
     BooleanResponseDTO booleanResponseDTO = userService.changeRacketType(changeValueRequest);
     return ResponseEntity.ok(booleanResponseDTO);
   }
+
+  @Operation(summary = "비밀번호 확인", description = "민감한 정보를 다루기 전 비밀번호 확인하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "비밀번호 확인",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PostMapping("/verification/password")
+  public ResponseEntity<BooleanResponseDTO> verifyPassword(@RequestBody VerifyPasswordRequest verifyPasswordRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.verifyPassword(verifyPasswordRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "비밀번호 변경", description = "기존의 비밀번호를 새로운 비밀번호로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "비밀번호 변경",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PatchMapping("/password")
+  public ResponseEntity<BooleanResponseDTO> changePassword(@RequestBody ChangeValueRequest changeValueRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.changePassword(changeValueRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
 }

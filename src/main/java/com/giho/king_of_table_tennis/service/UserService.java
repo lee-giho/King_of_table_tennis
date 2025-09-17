@@ -10,6 +10,7 @@ import com.giho.king_of_table_tennis.repository.UserTableTennisInfoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,8 @@ public class UserService {
   private final UserTableTennisInfoRepository userTableTennisInfoRepository;
 
   private final ImageService imageService;
+
+  private final PasswordEncoder passwordEncoder;
 
   public CheckExistsResponseDTO checkNickNameDuplication(String nickName) {
     boolean isDuplication = userRepository.existsByNickName(nickName);
@@ -123,6 +126,34 @@ public class UserService {
     try {
       userTableTennisInfoEntity.setRacketType(changeValueRequest.getChangeValue());
       userTableTennisInfoRepository.save(userTableTennisInfoEntity);
+      return new BooleanResponseDTO(true);
+    } catch (Exception e) {
+      return new BooleanResponseDTO(false);
+    }
+  }
+
+  public BooleanResponseDTO verifyPassword(VerifyPasswordRequest verifyPasswordRequest) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserEntity userEntity = userRepository.findById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    boolean isMatched = passwordEncoder.matches(verifyPasswordRequest.getPassword(), userEntity.getPassword());
+
+    return new BooleanResponseDTO(isMatched);
+  }
+
+  public BooleanResponseDTO changePassword(ChangeValueRequest changeValueRequest) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserEntity userEntity = userRepository.findById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    try {
+      userEntity.setPassword(passwordEncoder.encode(changeValueRequest.getChangeValue()));
+      userRepository.save(userEntity);
       return new BooleanResponseDTO(true);
     } catch (Exception e) {
       return new BooleanResponseDTO(false);
