@@ -114,4 +114,19 @@ public class UserController {
     UserInfo userInfo = userService.getUserInfo();
     return ResponseEntity.ok(userInfo);
   }
+
+  @Operation(summary = "닉네임 변경하기", description = "기존의 닉네임을 새로운 닉네임으로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "닉네임 변경하기",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PatchMapping("/nickName")
+  public ResponseEntity<BooleanResponseDTO> changeNickName(@RequestBody ChangeValueRequest changeValueRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.changeNickName(changeValueRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
 }

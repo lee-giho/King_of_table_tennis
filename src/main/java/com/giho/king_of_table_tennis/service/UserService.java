@@ -96,4 +96,20 @@ public class UserService {
 
     return userInfo;
   }
+
+  public BooleanResponseDTO changeNickName(ChangeValueRequest changeValueRequest) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserEntity userEntity = userRepository.findById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    try {
+      userEntity.setNickName(changeValueRequest.getChangeValue());
+      userRepository.save(userEntity);
+      return new BooleanResponseDTO(true);
+    } catch (Exception e) {
+      return new BooleanResponseDTO(false);
+    }
+  }
 }
