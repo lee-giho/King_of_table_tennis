@@ -39,4 +39,16 @@ public class ImageService {
 
     return imageFileName;
   }
+
+  public Boolean deleteProfileImage(String imageName) {
+    try {
+      File image = new File(profileImageRelativePath + imageName);
+      if (image.exists()) {
+        return image.delete();
+      }
+      return false;
+    } catch (Exception e) {
+      throw new CustomException(ErrorCode.FILE_DELETE_ERROR);
+    }
+  }
 }

@@ -174,4 +174,34 @@ public class UserController {
     BooleanResponseDTO booleanResponseDTO = userService.changePassword(changeValueRequest);
     return ResponseEntity.ok(booleanResponseDTO);
   }
+
+  @Operation(summary = "프로필 사진 변경", description = "기존의 프로필 사진을 새로운 사진으로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "프로필 사진 변경",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PatchMapping("/profileImage")
+  public ResponseEntity<BooleanResponseDTO> uploadProfileImage(@ModelAttribute UploadProfileImageRequest uploadProfileImageRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.changeProfileImage(uploadProfileImageRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "프로필 사진을 기본으로 변경", description = "기존의 프로필 사진을 삭제하여 DB의 profileImage를 default로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "프로필 사진을 기본으로 변경",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @DeleteMapping("/profileImage/default")
+  public ResponseEntity<BooleanResponseDTO> deleteProfileImage() {
+    BooleanResponseDTO booleanResponseDTO = userService.deleteProfileImage();
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
 }

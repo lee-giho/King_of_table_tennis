@@ -13,6 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.io.File;
 
 @Service
 @RequiredArgsConstructor
@@ -154,6 +158,80 @@ public class UserService {
     try {
       userEntity.setPassword(passwordEncoder.encode(changeValueRequest.getChangeValue()));
       userRepository.save(userEntity);
+      return new BooleanResponseDTO(true);
+    } catch (Exception e) {
+      return new BooleanResponseDTO(false);
+    }
+  }
+
+  @Transactional
+  public BooleanResponseDTO changeProfileImage(UploadProfileImageRequest uploadProfileImageRequest) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserEntity userEntity = userRepository.findById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    try {
+      // 새 이미지 저장
+      String newImageName = imageService.saveImage(uploadProfileImageRequest.getProfileImage());
+      String oldImageName = userEntity.getProfileImage();
+
+      // DB 업데이트
+      userEntity.setProfileImage(newImageName);
+      userRepository.save(userEntity);
+
+      // 트랜잭션 완료 후 처리
+      TransactionSynchronizationManager.registerSynchronization(
+        new TransactionSynchronization() {
+          @Override
+          public void afterCommit() {
+            if (oldImageName != null && !oldImageName.isEmpty()) {
+              imageService.deleteProfileImage(oldImageName);
+            }
+          }
+          @Override
+          public void afterCompletion(int status) {
+            if (status == STATUS_ROLLED_BACK) {
+              // DB 롤백 시 저장했던 새 이미지 삭제
+              imageService.deleteProfileImage(newImageName);
+            }
+          }
+        }
+      );
+      return new BooleanResponseDTO(true);
+    } catch (Exception e) {
+      return new BooleanResponseDTO(false);
+    }
+  }
+
+  public BooleanResponseDTO deleteProfileImage() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserEntity userEntity = userRepository.findById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    try {
+      String oldImageName = userEntity.getProfileImage();
+      if (oldImageName == null || oldImageName.isEmpty()) {
+        // 원래 프로필 이미지가 없을 때
+        return new BooleanResponseDTO(true);
+      }
+
+      // DB 업데이트
+      userEntity.setProfileImage("default");
+      userRepository.save(userEntity);
+
+      // 트랜잭션 완료 후 처리
+      TransactionSynchronizationManager.registerSynchronization(
+        new TransactionSynchronization() {
+          @Override
+          public void afterCommit() {
+            imageService.deleteProfileImage(oldImageName);
+          }
+        }
+      );
       return new BooleanResponseDTO(true);
     } catch (Exception e) {
       return new BooleanResponseDTO(false);
