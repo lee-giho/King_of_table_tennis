@@ -205,6 +205,7 @@ public class UserService {
     }
   }
 
+  @Transactional
   public BooleanResponseDTO deleteProfileImage() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
@@ -234,6 +235,7 @@ public class UserService {
       );
       return new BooleanResponseDTO(true);
     } catch (Exception e) {
+      System.out.println(e);
       return new BooleanResponseDTO(false);
     }
   }

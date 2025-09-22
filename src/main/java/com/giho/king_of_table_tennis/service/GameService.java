@@ -216,6 +216,49 @@ public class GameService {
     return new PageImpl<>(gameDetailInfoList, pageable, gameInfoPage.getTotalElements());
   }
 
+  public Page<GameDetailInfoByPage> getGameDetailInfoByUser(String userId, String type, Pageable pageable) {
+
+    List<GameState> gameStates = new ArrayList<>();
+    if (type.equals("before")) {
+      gameStates = List.of(GameState.RECRUITING, GameState.WAITING);
+    } else {
+      gameStates = List.of(GameState.END);
+    }
+
+    System.out.println("type" + type);
+    System.out.println("GameState" + gameStates);
+
+    Page<Object[]> rawPage = gameInfoRepository.findByUserIdAndGameState(userId, gameStates, pageable);
+    if (rawPage.isEmpty()) {
+      return Page.empty(pageable);
+    }
+
+    List<GameDetailInfoByPage> gameDetailInfoByPages = rawPage.getContent().stream()
+      .map(row -> {
+        GameInfoEntity g = (GameInfoEntity) row[0];
+        GameStateEntity s = (GameStateEntity) row[1];
+        UserEntity d = (UserEntity) row[2];
+        UserEntity c = (UserEntity) row[3];
+        UserTableTennisInfoEntity dTti = (UserTableTennisInfoEntity) row[4];
+        UserTableTennisInfoEntity cTti = (UserTableTennisInfoEntity) row[5];
+
+        UserInfo defenderInfo = toUserInfo(d, dTti);
+        UserInfo challengerInfo = (c != null) ? toUserInfo(c, cTti) : null;
+
+        boolean isMine = d.getId().equals(userId);
+
+        return new GameDetailInfoByPage(
+          defenderInfo,
+          challengerInfo,
+          g,
+          s,
+          isMine
+        );
+      }).toList();
+
+    return new PageImpl<>(gameDetailInfoByPages, pageable, rawPage.getTotalElements());
+  }
+
   private GameInfoEntity cloneWithPlaceName(GameInfoEntity src, String placeName) {
     GameInfoEntity g = new GameInfoEntity();
     g.setId(src.getId());
@@ -225,5 +268,25 @@ public class GameService {
     g.setGameDate(src.getGameDate());
     g.setPlace(placeName);
     return g;
+  }
+
+  private UserInfo toUserInfo(UserEntity u, UserTableTennisInfoEntity tti) {
+    String racketType = (tti != null) ? tti.getRacketType() : null;
+    String userLevel = (tti != null) ? tti.getUserLevel() : null;
+
+    int winCount = 0;
+    int defeatCount = 0;
+
+    return new UserInfo(
+      u.getId(),
+      u.getName(),
+      u.getNickName(),
+      u.getEmail(),
+      u.getProfileImage(),
+      racketType,
+      userLevel,
+      winCount,
+      defeatCount
+    );
   }
 }
