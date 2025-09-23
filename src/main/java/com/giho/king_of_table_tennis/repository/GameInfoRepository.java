@@ -29,7 +29,10 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
   Page<GameInfoEntity> findByPlaceAndGameDateAfterOrderByGameDateAsc(String place, LocalDateTime now, Pageable pageable);
 
   @Query("""
-    SELECT g, s, d, c, dTti, cTti
+    SELECT g, s, d, c, dTti, cTti,
+      ( SELECT COUNT(ga)
+        FROM GameApplicationEntity ga
+        WHERE ga.gameInfoId = g.id) AS applicationCount
     FROM GameInfoEntity g
     JOIN GameStateEntity s ON g.id = s.gameInfoId
     JOIN UserEntity d ON d.id = s.defenderId

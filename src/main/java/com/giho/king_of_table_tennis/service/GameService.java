@@ -196,7 +196,7 @@ public class GameService {
     for (GameInfoEntity gameInfo : gameInfoList) {
 
       String placeName = placeNameById.getOrDefault(gameInfo.getPlace(), gameInfo.getPlace());
-      GameInfoEntity cloneGameInfo = cloneWithPlaceName(gameInfo, placeName);
+      GameInfoDTO cloneGameInfo = cloneWithPlaceName(gameInfo, placeName);
 
       GameStateEntity gameState = gameStateByGameId.get(gameInfo.getId());
       if (gameState == null) {
@@ -216,24 +216,32 @@ public class GameService {
     return new PageImpl<>(gameDetailInfoList, pageable, gameInfoPage.getTotalElements());
   }
 
-  public Page<GameDetailInfoByPage> getGameDetailInfoByUser(String userId, String type, Pageable pageable) {
+  public Page<GameDetailInfoByUser> getGameDetailInfoByUser(String type, Pageable pageable) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
 
-    List<GameState> gameStates = new ArrayList<>();
+    List<GameState> gameStates;
     if (type.equals("before")) {
       gameStates = List.of(GameState.RECRUITING, GameState.WAITING);
     } else {
       gameStates = List.of(GameState.END);
     }
 
-    System.out.println("type" + type);
-    System.out.println("GameState" + gameStates);
-
     Page<Object[]> rawPage = gameInfoRepository.findByUserIdAndGameState(userId, gameStates, pageable);
     if (rawPage.isEmpty()) {
       return Page.empty(pageable);
     }
 
-    List<GameDetailInfoByPage> gameDetailInfoByPages = rawPage.getContent().stream()
+    List<String> placeIds = rawPage.getContent().stream()
+      .map(row -> ((GameInfoEntity) row[0]).getPlace())
+      .distinct()
+      .toList();
+
+    Map<String, String> placeNameById = tableTennisCourtRepository.findAllById(placeIds)
+      .stream()
+      .collect(Collectors.toMap(TableTennisCourtEntity::getId, TableTennisCourtEntity::getName));
+
+    List<GameDetailInfoByUser> gameDetailInfoByUsers = rawPage.getContent().stream()
       .map(row -> {
         GameInfoEntity g = (GameInfoEntity) row[0];
         GameStateEntity s = (GameStateEntity) row[1];
@@ -241,26 +249,31 @@ public class GameService {
         UserEntity c = (UserEntity) row[3];
         UserTableTennisInfoEntity dTti = (UserTableTennisInfoEntity) row[4];
         UserTableTennisInfoEntity cTti = (UserTableTennisInfoEntity) row[5];
+        long applicationCount = (long) row[6];
 
         UserInfo defenderInfo = toUserInfo(d, dTti);
         UserInfo challengerInfo = (c != null) ? toUserInfo(c, cTti) : null;
 
         boolean isMine = d.getId().equals(userId);
 
-        return new GameDetailInfoByPage(
+        String placeName = placeNameById.getOrDefault(g.getPlace(), g.getPlace());
+        GameInfoDTO gameInfoDTO = cloneWithPlaceName(g, placeName);
+
+        return new GameDetailInfoByUser(
           defenderInfo,
           challengerInfo,
-          g,
+          gameInfoDTO,
           s,
-          isMine
+          isMine,
+          applicationCount
         );
       }).toList();
 
-    return new PageImpl<>(gameDetailInfoByPages, pageable, rawPage.getTotalElements());
+    return new PageImpl<>(gameDetailInfoByUsers, pageable, rawPage.getTotalElements());
   }
 
-  private GameInfoEntity cloneWithPlaceName(GameInfoEntity src, String placeName) {
-    GameInfoEntity g = new GameInfoEntity();
+  private GameInfoDTO cloneWithPlaceName(GameInfoEntity src, String placeName) {
+    GameInfoDTO g = new GameInfoDTO();
     g.setId(src.getId());
     g.setGameSet(src.getGameSet());
     g.setGameScore(src.getGameScore());

@@ -136,22 +136,21 @@ public class GameController {
       schema = @Schema(implementation = PageResponse.class)
     )
   )
-  @GetMapping("/detailInfo/{userId}/{type}")
-  public ResponseEntity<PageResponse<GameDetailInfoByPage>> getGameDetailInfoByUser(
+  @GetMapping("/detailInfo/myGame/{type}")
+  public ResponseEntity<PageResponse<GameDetailInfoByUser>> getGameDetailInfoByUser(
     @RequestParam(name = "page", defaultValue = "0") int page,
     @RequestParam(name = "size", defaultValue = "5") int size,
-    @PathVariable String userId,
     @PathVariable String type) {
 
     Pageable pageable = PageRequest.of(page, size);
-    Page<GameDetailInfoByPage> gameDetailInfoByPage = gameService.getGameDetailInfoByUser(userId, type, pageable);
+    Page<GameDetailInfoByUser> gameDetailInfoByUser = gameService.getGameDetailInfoByUser(type, pageable);
 
-    PageResponse<GameDetailInfoByPage> body = new PageResponse<>(
-      gameDetailInfoByPage.getContent(),
-      gameDetailInfoByPage.getTotalPages(),
-      gameDetailInfoByPage.getTotalElements(),
-      gameDetailInfoByPage.getNumber(),
-      gameDetailInfoByPage.getSize()
+    PageResponse<GameDetailInfoByUser> body = new PageResponse<>(
+      gameDetailInfoByUser.getContent(),
+      gameDetailInfoByUser.getTotalPages(),
+      gameDetailInfoByUser.getTotalElements(),
+      gameDetailInfoByUser.getNumber(),
+      gameDetailInfoByUser.getSize()
     );
 
     return ResponseEntity.ok(body);
