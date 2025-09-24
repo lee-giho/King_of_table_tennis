@@ -16,11 +16,13 @@ public class RecruitingGameDTO {
   private String creatorId;
   private GameState gameState;
   private boolean isMine;
+  private boolean alreadyApplied;
 
   public RecruitingGameDTO(GameInfoEntity gameInfo, String creatorId, GameState gameState) {
     this.gameInfo = gameInfo;
     this.creatorId = creatorId;
     this.gameState = gameState;
     this.isMine = false; // 기본값
+    this.alreadyApplied = false; // 기본값
   }
 }
