@@ -266,6 +266,21 @@ public class GameService {
     return new PageImpl<>(gameDetailInfoByUsers, pageable, rawPage.getTotalElements());
   }
 
+  public BooleanResponseDTO deleteGameParticipation(String gameInfoId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    GameApplicationEntity gameApplicationEntity = gameApplicationRepository.findByGameInfoIdAndApplicantId(gameInfoId, userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_APPLICATION_NOT_FOUND));
+
+    try {
+      gameApplicationRepository.delete(gameApplicationEntity);
+      return new BooleanResponseDTO(true);
+    } catch (Exception e) {
+      throw new CustomException(ErrorCode.DB_DELETE_ERROR);
+    }
+  }
+
   private GameInfoDTO cloneWithPlaceName(GameInfoEntity src, String placeName) {
     GameInfoDTO g = new GameInfoDTO();
     g.setId(src.getId());

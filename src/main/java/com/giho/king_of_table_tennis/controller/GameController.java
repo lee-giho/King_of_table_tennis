@@ -155,4 +155,19 @@ public class GameController {
 
     return ResponseEntity.ok(body);
   }
+
+  @Operation(summary = "탁구 경기 참가 취소", description = "신청했던 탁구 경기를 취소하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "탁구 경기 참가 신청 취소 완료 여부 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @DeleteMapping("/participation/{gameInfoId}")
+  public ResponseEntity<BooleanResponseDTO> cancelGameParticipation(@PathVariable String gameInfoId) {
+    BooleanResponseDTO booleanResponseDTO = gameService.deleteGameParticipation(gameInfoId);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
 }
