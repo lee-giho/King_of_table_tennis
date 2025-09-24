@@ -84,4 +84,124 @@ public class UserController {
     RefreshAccessTokenResponseDTO refreshAccessTokenResponseDTO = tokenService.refreshAccessTokenByRefreshToken(refreshToken);
     return ResponseEntity.ok(refreshAccessTokenResponseDTO);
   }
+
+  @Operation(summary = "간단한 내 정보 가져오기", description = "마이페이지에서 보여줄 간단한 내 정보 반환하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "간단한 내 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = MySimpleInfoResponse.class)
+    )
+  )
+  @GetMapping("/myInfo/simple")
+  public ResponseEntity<MySimpleInfoResponse> getMySimpleInfo() {
+    MySimpleInfoResponse myInfoResponse = userService.getMySimpleInfo();
+    return ResponseEntity.ok(myInfoResponse);
+  }
+
+  @Operation(summary = "내 정보 가져오기", description = "마이페이지에서 보여줄 민감한 정보 제외한 내 정보 반환하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "내 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = UserInfo.class)
+    )
+  )
+  @GetMapping("/myInfo")
+  public ResponseEntity<UserInfo> getUserInfo() {
+    UserInfo userInfo = userService.getUserInfo();
+    return ResponseEntity.ok(userInfo);
+  }
+
+  @Operation(summary = "닉네임 변경하기", description = "기존의 닉네임을 새로운 닉네임으로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "닉네임 변경하기",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PatchMapping("/nickName")
+  public ResponseEntity<BooleanResponseDTO> changeNickName(@RequestBody ChangeValueRequest changeValueRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.changeNickName(changeValueRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "라켓 타입 변경하기", description = "기존의 라켓 타입을 새로운 라켓 타입으로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "라켓 타입 변경하기",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PatchMapping("/racketType")
+  public ResponseEntity<BooleanResponseDTO> changeRacketType(@RequestBody ChangeValueRequest changeValueRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.changeRacketType(changeValueRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "비밀번호 확인", description = "민감한 정보를 다루기 전 비밀번호 확인하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "비밀번호 확인",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PostMapping("/verification/password")
+  public ResponseEntity<BooleanResponseDTO> verifyPassword(@RequestBody VerifyPasswordRequest verifyPasswordRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.verifyPassword(verifyPasswordRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "비밀번호 변경", description = "기존의 비밀번호를 새로운 비밀번호로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "비밀번호 변경",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PatchMapping("/password")
+  public ResponseEntity<BooleanResponseDTO> changePassword(@RequestBody ChangeValueRequest changeValueRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.changePassword(changeValueRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "프로필 사진 변경", description = "기존의 프로필 사진을 새로운 사진으로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "프로필 사진 변경",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @PatchMapping("/profileImage")
+  public ResponseEntity<BooleanResponseDTO> uploadProfileImage(@ModelAttribute UploadProfileImageRequest uploadProfileImageRequest) {
+    BooleanResponseDTO booleanResponseDTO = userService.changeProfileImage(uploadProfileImageRequest);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "프로필 사진을 기본으로 변경", description = "기존의 프로필 사진을 삭제하여 DB의 profileImage를 default로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "프로필 사진을 기본으로 변경",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @DeleteMapping("/profileImage/default")
+  public ResponseEntity<BooleanResponseDTO> deleteProfileImage() {
+    BooleanResponseDTO booleanResponseDTO = userService.deleteProfileImage();
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
 }

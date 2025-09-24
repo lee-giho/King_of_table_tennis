@@ -13,6 +13,7 @@ public enum ErrorCode {
   USER_ALREADY_EXIST(HttpStatus.CONFLICT, "이미 존재하는 사용자입니다."),
 
   // 탁구 정보
+  TABLE_TENNIS_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자에 대한 탁구 정보를 찾을 수 없습니다."),
   TABLE_TENNIS_INFO_ALREADY_EXIST(HttpStatus.CONFLICT, "해당 사용자에 대한 탁구 정보가 이미 존재합니다."),
 
   // 탁구 경기
@@ -27,6 +28,7 @@ public enum ErrorCode {
 
   // 파일 처리
   FILE_STORAGE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 저장 중 오류가 발생했습니다."),
+  FILE_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 삭제 중 오류가 발생했습니다."),
   DIR_CREATE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "폴더 생성 중 오류가 발생했습니다."),
 
   // 데이터베이스 처리

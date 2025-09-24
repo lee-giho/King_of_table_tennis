@@ -196,7 +196,7 @@ public class GameService {
     for (GameInfoEntity gameInfo : gameInfoList) {
 
       String placeName = placeNameById.getOrDefault(gameInfo.getPlace(), gameInfo.getPlace());
-      GameInfoEntity cloneGameInfo = cloneWithPlaceName(gameInfo, placeName);
+      GameInfoDTO cloneGameInfo = cloneWithPlaceName(gameInfo, placeName);
 
       GameStateEntity gameState = gameStateByGameId.get(gameInfo.getId());
       if (gameState == null) {
@@ -216,8 +216,64 @@ public class GameService {
     return new PageImpl<>(gameDetailInfoList, pageable, gameInfoPage.getTotalElements());
   }
 
-  private GameInfoEntity cloneWithPlaceName(GameInfoEntity src, String placeName) {
-    GameInfoEntity g = new GameInfoEntity();
+  public Page<GameDetailInfoByUser> getGameDetailInfoByUser(String type, Pageable pageable) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    List<GameState> gameStates;
+    if (type.equals("before")) {
+      gameStates = List.of(GameState.RECRUITING, GameState.WAITING);
+    } else {
+      gameStates = List.of(GameState.END);
+    }
+
+    Page<Object[]> rawPage = gameInfoRepository.findByUserIdAndGameState(userId, gameStates, pageable);
+    if (rawPage.isEmpty()) {
+      return Page.empty(pageable);
+    }
+
+    List<String> placeIds = rawPage.getContent().stream()
+      .map(row -> ((GameInfoEntity) row[0]).getPlace())
+      .distinct()
+      .toList();
+
+    Map<String, String> placeNameById = tableTennisCourtRepository.findAllById(placeIds)
+      .stream()
+      .collect(Collectors.toMap(TableTennisCourtEntity::getId, TableTennisCourtEntity::getName));
+
+    List<GameDetailInfoByUser> gameDetailInfoByUsers = rawPage.getContent().stream()
+      .map(row -> {
+        GameInfoEntity g = (GameInfoEntity) row[0];
+        GameStateEntity s = (GameStateEntity) row[1];
+        UserEntity d = (UserEntity) row[2];
+        UserEntity c = (UserEntity) row[3];
+        UserTableTennisInfoEntity dTti = (UserTableTennisInfoEntity) row[4];
+        UserTableTennisInfoEntity cTti = (UserTableTennisInfoEntity) row[5];
+        long applicationCount = (long) row[6];
+
+        UserInfo defenderInfo = toUserInfo(d, dTti);
+        UserInfo challengerInfo = (c != null) ? toUserInfo(c, cTti) : null;
+
+        boolean isMine = d.getId().equals(userId);
+
+        String placeName = placeNameById.getOrDefault(g.getPlace(), g.getPlace());
+        GameInfoDTO gameInfoDTO = cloneWithPlaceName(g, placeName);
+
+        return new GameDetailInfoByUser(
+          defenderInfo,
+          challengerInfo,
+          gameInfoDTO,
+          s,
+          isMine,
+          applicationCount
+        );
+      }).toList();
+
+    return new PageImpl<>(gameDetailInfoByUsers, pageable, rawPage.getTotalElements());
+  }
+
+  private GameInfoDTO cloneWithPlaceName(GameInfoEntity src, String placeName) {
+    GameInfoDTO g = new GameInfoDTO();
     g.setId(src.getId());
     g.setGameSet(src.getGameSet());
     g.setGameScore(src.getGameScore());
@@ -225,5 +281,25 @@ public class GameService {
     g.setGameDate(src.getGameDate());
     g.setPlace(placeName);
     return g;
+  }
+
+  private UserInfo toUserInfo(UserEntity u, UserTableTennisInfoEntity tti) {
+    String racketType = (tti != null) ? tti.getRacketType() : null;
+    String userLevel = (tti != null) ? tti.getUserLevel() : null;
+
+    int winCount = 0;
+    int defeatCount = 0;
+
+    return new UserInfo(
+      u.getId(),
+      u.getName(),
+      u.getNickName(),
+      u.getEmail(),
+      u.getProfileImage(),
+      racketType,
+      userLevel,
+      winCount,
+      defeatCount
+    );
   }
 }

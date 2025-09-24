@@ -9,11 +9,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-@Schema(description = "참가자와 경기 정보, 내가 만든 경기인지 알 수 있는 DTO")
-public class GameDetailInfoByPage {
+@Schema(description = "참가자와 경기 정보, 내가 만든 경기인지, 신청자가 몇 명인지 알 수 있는 DTO")
+public class GameDetailInfoByUser {
   private UserInfo defenderInfo;
   private UserInfo challengerInfo;
   private GameInfoDTO gameInfo;
   private GameStateEntity gameState;
   private boolean isMine;
+  private long applicationCount;
 }

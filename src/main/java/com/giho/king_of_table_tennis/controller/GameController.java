@@ -104,7 +104,7 @@ public class GameController {
     description = "경기에 대한 참가자와 경기 정보 반환",
     content = @Content(
       mediaType = "application/json",
-      schema = @Schema(implementation = GameDetailInfo.class)
+      schema = @Schema(implementation = PageResponse.class)
     )
   )
   @GetMapping("/detailInfo/latest/{place}")
@@ -122,6 +122,35 @@ public class GameController {
       gameDetailInfoPage.getTotalElements(),
       gameDetailInfoPage.getNumber(),
       gameDetailInfoPage.getSize()
+    );
+
+    return ResponseEntity.ok(body);
+  }
+
+  @Operation(summary = "페이징을 통해 경기에 대한 자세한 정보 불러오기 / 마이페이지의 탁구 경기 내역", description = "사용자 아이디와 경기 전/후로 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "경기에 대한 참가자와 경기 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/detailInfo/myGame/{type}")
+  public ResponseEntity<PageResponse<GameDetailInfoByUser>> getGameDetailInfoByUser(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "5") int size,
+    @PathVariable String type) {
+
+    Pageable pageable = PageRequest.of(page, size);
+    Page<GameDetailInfoByUser> gameDetailInfoByUser = gameService.getGameDetailInfoByUser(type, pageable);
+
+    PageResponse<GameDetailInfoByUser> body = new PageResponse<>(
+      gameDetailInfoByUser.getContent(),
+      gameDetailInfoByUser.getTotalPages(),
+      gameDetailInfoByUser.getTotalElements(),
+      gameDetailInfoByUser.getNumber(),
+      gameDetailInfoByUser.getSize()
     );
 
     return ResponseEntity.ok(body);
