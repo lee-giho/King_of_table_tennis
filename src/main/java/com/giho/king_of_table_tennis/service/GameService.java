@@ -281,6 +281,12 @@ public class GameService {
     }
   }
 
+  public Page<UserInfo> getApplicantInfo(Pageable pageable, String gameInfoId) {
+    Page<UserInfo> userInfoPage = gameApplicationRepository.findApplicantByGameInfoIdOrderByApplicationAtAsc(gameInfoId, pageable);
+    System.out.println(userInfoPage.getTotalElements());
+    return userInfoPage;
+  }
+
   private GameInfoDTO cloneWithPlaceName(GameInfoEntity src, String placeName) {
     GameInfoDTO g = new GameInfoDTO();
     g.setId(src.getId());

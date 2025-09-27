@@ -101,7 +101,7 @@ public class GameController {
   @Operation(summary = "페이징을 통해 경기에 대한 자세한 정보 한 개씩 불러오기", description = "참가자 정보와 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
-    description = "경기에 대한 참가자와 경기 정보 반환",
+    description = "페이징을 통한 경기에 대한 참가자와 경기 정보 반환",
     content = @Content(
       mediaType = "application/json",
       schema = @Schema(implementation = PageResponse.class)
@@ -130,7 +130,7 @@ public class GameController {
   @Operation(summary = "페이징을 통해 경기에 대한 자세한 정보 불러오기 / 마이페이지의 탁구 경기 내역", description = "사용자 아이디와 경기 전/후로 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
-    description = "경기에 대한 참가자와 경기 정보 반환",
+    description = "페이징을 통한 경기에 대한 참가자와 경기 정보 반환",
     content = @Content(
       mediaType = "application/json",
       schema = @Schema(implementation = PageResponse.class)
@@ -169,5 +169,34 @@ public class GameController {
   public ResponseEntity<BooleanResponseDTO> cancelGameParticipation(@PathVariable String gameInfoId) {
     BooleanResponseDTO booleanResponseDTO = gameService.deleteGameParticipation(gameInfoId);
     return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "탁구 경기 참가자 목록", description = "해당 경기에 신청한 참가자들의 목록을 페이징을 통해 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "페이징을 통한 탁구 경기 참가자 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/{gameInfoId}/applicant")
+  public ResponseEntity<PageResponse<UserInfo>> getApplicantInfo(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "5") int size,
+    @PathVariable String gameInfoId) {
+
+    Pageable pageable = PageRequest.of(page, size);
+    Page<UserInfo> userInfoPage = gameService.getApplicantInfo(pageable, gameInfoId);
+
+    PageResponse<UserInfo> body = new PageResponse<>(
+      userInfoPage.getContent(),
+      userInfoPage.getTotalPages(),
+      userInfoPage.getTotalElements(),
+      userInfoPage.getNumber(),
+      userInfoPage.getSize()
+    );
+
+    return ResponseEntity.ok(body);
   }
 }
