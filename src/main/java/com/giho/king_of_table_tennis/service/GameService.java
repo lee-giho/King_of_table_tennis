@@ -287,6 +287,26 @@ public class GameService {
     return userInfoPage;
   }
 
+  @Transactional
+  public void acceptApplicant(String gameInfoId, String applicantId) {
+    GameStateEntity gameState = gameStateRepository.findByGameInfoId(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    // 신청 존재 검증
+    boolean exists = gameApplicationRepository.existsByGameInfoIdAndApplicantId(gameInfoId, applicantId);
+    System.out.println(exists);
+    if (!exists) throw new CustomException(ErrorCode.GAME_APPLICATION_NOT_FOUND);
+
+    // 이미 상대방이 있는지 확인
+    if (gameState.getChallengerId() != null) throw new CustomException(ErrorCode.CHALLENGER_ALREADY_EXIST);
+
+    gameState.setChallengerId(applicantId);
+    gameState.setState(GameState.WAITING);
+    gameStateRepository.save(gameState);
+
+    gameApplicationRepository.deleteByGameInfoId(gameInfoId);
+  }
+
   private GameInfoDTO cloneWithPlaceName(GameInfoEntity src, String placeName) {
     GameInfoDTO g = new GameInfoDTO();
     g.setId(src.getId());

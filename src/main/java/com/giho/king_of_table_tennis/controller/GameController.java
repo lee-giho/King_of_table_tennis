@@ -199,4 +199,18 @@ public class GameController {
 
     return ResponseEntity.ok(body);
   }
+
+  @Operation(summary = "경기 신청자 수락", description = "특정 경기의 신청자 한 명을 수락하고, 해당 경기의 모든 신청 레코드를 삭제한 뒤 경기 상태를 WAITING으로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "신청자 수락 완료(본문 없음)"
+  )
+  @PatchMapping("/{gameInfoId}/applications/{applicantId}/acceptance")
+  public ResponseEntity<Void> acceptApplicant(
+    @PathVariable String gameInfoId,
+    @PathVariable String applicantId) {
+
+    gameService.acceptApplicant(gameInfoId, applicantId);
+    return ResponseEntity.noContent().build(); // 204
+  }
 }

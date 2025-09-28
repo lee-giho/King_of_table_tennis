@@ -23,6 +23,7 @@ public enum ErrorCode {
 
   // 탁구 경기 신청
   GAME_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "탁구 경기 신청 정보를 찾을 수 없습니다."),
+  CHALLENGER_ALREADY_EXIST(HttpStatus.CONFLICT, "이미 탁구 경기의 상대방이 존재합니다."),
 
   // 인증번호 / 이메일
   VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않습니다."),

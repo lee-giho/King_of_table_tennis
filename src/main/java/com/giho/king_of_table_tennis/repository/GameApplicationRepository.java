@@ -22,4 +22,8 @@ public interface GameApplicationRepository extends JpaRepository<GameApplication
     ORDER BY ga.applicationAt ASC
   """)
   Page<UserInfo> findApplicantByGameInfoIdOrderByApplicationAtAsc(@Param("gameInfoId") String gameInfoId, Pageable pageable);
+
+  boolean existsByGameInfoIdAndApplicantId(String gameInfoId, String applicantId);
+
+  void deleteByGameInfoId(String gameInfoId);
 }
