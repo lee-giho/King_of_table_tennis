@@ -93,7 +93,7 @@ public class UserService {
     return mySimpleInfoResponse;
   }
 
-  public UserInfo getUserInfo () {
+  public UserInfo getMyInfo () {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
@@ -236,5 +236,10 @@ public class UserService {
       System.out.println(e);
       return new BooleanResponseDTO(false);
     }
+  }
+
+  public UserInfo getUserInfo(String userId) {
+    UserInfo userInfo = userRepository.findUserInfoById(userId);
+    return userInfo;
   }
 }

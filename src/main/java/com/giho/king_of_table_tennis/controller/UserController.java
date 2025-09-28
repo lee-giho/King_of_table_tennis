@@ -110,8 +110,8 @@ public class UserController {
     )
   )
   @GetMapping("/myInfo")
-  public ResponseEntity<UserInfo> getUserInfo() {
-    UserInfo userInfo = userService.getUserInfo();
+  public ResponseEntity<UserInfo> getMyInfo() {
+    UserInfo userInfo = userService.getMyInfo();
     return ResponseEntity.ok(userInfo);
   }
 
@@ -203,5 +203,20 @@ public class UserController {
   public ResponseEntity<BooleanResponseDTO> deleteProfileImage() {
     BooleanResponseDTO booleanResponseDTO = userService.deleteProfileImage();
     return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "사용자 정보 가져오기", description = "id를 통해 해당하는 사용자 정보 반환하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "사용자 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = UserInfo.class)
+    )
+  )
+  @GetMapping("/info/{userId}")
+  public ResponseEntity<UserInfo> getUserInfo(@PathVariable String userId) {
+    UserInfo userInfo = userService.getUserInfo(userId);
+    return ResponseEntity.ok(userInfo);
   }
 }
