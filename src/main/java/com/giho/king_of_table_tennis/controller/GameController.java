@@ -214,18 +214,4 @@ public class GameController {
     gameService.acceptApplicant(gameInfoId, applicantId);
     return ResponseEntity.noContent().build(); // 204
   }
-
-  @Operation(summary = "경기 리뷰 작성", description = "경기 종료 후 작성한 리뷰 등록하는 API", security = @SecurityRequirement(name = "JWT"))
-  @ApiResponse(
-    responseCode = "201",
-    description = "경기 리뷰 작성 완료(본문 없음)"
-  )
-  @PostMapping("/{gameInfoId}/review")
-  public ResponseEntity<Void> registerReview(
-    @PathVariable String gameInfoId,
-    @RequestBody RegisterReviewRequestDTO registerReviewRequestDTO
-  ) {
-    gameService.registerReview(gameInfoId, registerReviewRequestDTO);
-    return ResponseEntity.status(HttpStatus.CREATED).build();
-  }
 }
