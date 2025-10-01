@@ -43,7 +43,15 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
     SELECT g, s, d, c, dTti, cTti,
       ( SELECT COUNT(ga)
         FROM GameApplicationEntity ga
-        WHERE ga.gameInfoId = g.id) AS applicationCount
+        WHERE ga.gameInfoId = g.id
+      ) AS applicationCount,
+      ( CASE WHEN EXISTS (
+          SELECT 1
+          FROM GameReviewEntity gr
+          WHERE gr.gameInfoId = g.id
+            AND gr.reviewerId = :userId
+        ) THEN true ELSE false END
+      ) AS hasReviewed
     FROM GameInfoEntity g
     JOIN GameStateEntity s ON g.id = s.gameInfoId
     JOIN UserEntity d ON d.id = s.defenderId

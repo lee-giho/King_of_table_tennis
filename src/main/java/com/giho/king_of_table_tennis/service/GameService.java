@@ -244,6 +244,7 @@ public class GameService {
         UserTableTennisInfoEntity dTti = (UserTableTennisInfoEntity) row[4];
         UserTableTennisInfoEntity cTti = (UserTableTennisInfoEntity) row[5];
         long applicationCount = (long) row[6];
+        boolean hasReviewed = (Boolean) row[7];
 
         UserInfo defenderInfo = toUserInfo(d, dTti);
         UserInfo challengerInfo = (c != null) ? toUserInfo(c, cTti) : null;
@@ -259,7 +260,8 @@ public class GameService {
           gameInfoDTO,
           s,
           isMine,
-          applicationCount
+          applicationCount,
+          hasReviewed
         );
       }).toList();
 
