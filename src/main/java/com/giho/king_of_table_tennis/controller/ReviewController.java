@@ -3,6 +3,7 @@ package com.giho.king_of_table_tennis.controller;
 import com.giho.king_of_table_tennis.dto.GameReviewDTO;
 import com.giho.king_of_table_tennis.dto.PageResponse;
 import com.giho.king_of_table_tennis.dto.RegisterReviewRequestDTO;
+import com.giho.king_of_table_tennis.dto.UpdateGameReviewRequestDTO;
 import com.giho.king_of_table_tennis.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -70,5 +71,20 @@ public class ReviewController {
     );
 
     return ResponseEntity.ok(body);
+  }
+
+  @Operation(summary = "경기 리뷰 수정", description = "경기 종료 후 작성했던 리뷰 수정하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "경기 리뷰 수정 완료(본문 없음)"
+  )
+  @PatchMapping("/{gameReviewId}")
+  public ResponseEntity<Void> patchReview(
+    @PathVariable String gameReviewId,
+    @RequestBody UpdateGameReviewRequestDTO updateGameReviewRequestDTO
+    ) {
+
+    reviewService.updateGameReview(gameReviewId, updateGameReviewRequestDTO);
+    return ResponseEntity.noContent().build();
   }
 }

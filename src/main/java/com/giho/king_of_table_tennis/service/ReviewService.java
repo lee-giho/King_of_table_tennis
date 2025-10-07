@@ -1,9 +1,6 @@
 package com.giho.king_of_table_tennis.service;
 
-import com.giho.king_of_table_tennis.dto.GameInfoDTO;
-import com.giho.king_of_table_tennis.dto.GameReviewDTO;
-import com.giho.king_of_table_tennis.dto.RegisterReviewRequestDTO;
-import com.giho.king_of_table_tennis.dto.UserInfo;
+import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.*;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
@@ -160,5 +157,32 @@ public class ReviewService {
     }).toList();
 
     return new PageImpl<>(content, pageable, rawPage.getTotalElements());
+  }
+
+  @Transactional
+  public void updateGameReview(String gameReviewId, UpdateGameReviewRequestDTO updateGameReviewRequestDTO) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    GameReviewEntity gameReviewEntity = gameReviewRepository.findById(gameReviewId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_REVIEW_NOT_FOUND));
+
+    if (!gameReviewEntity.getReviewerId().equals(userId)) {
+      throw new CustomException(ErrorCode.UNAUTHORIZED_REVIEW_EDIT);
+    }
+
+    if (updateGameReviewRequestDTO.getScoreServe() != null) gameReviewEntity.setScoreServe(updateGameReviewRequestDTO.getScoreServe());
+    if (updateGameReviewRequestDTO.getScoreReceive() != null) gameReviewEntity.setScoreReceive(updateGameReviewRequestDTO.getScoreReceive());
+    if (updateGameReviewRequestDTO.getScoreRally() != null) gameReviewEntity.setScoreRally(updateGameReviewRequestDTO.getScoreRally());
+    if (updateGameReviewRequestDTO.getScoreStrokes() != null) gameReviewEntity.setScoreStrokes(updateGameReviewRequestDTO.getScoreStrokes());
+    if (updateGameReviewRequestDTO.getScoreStrategy() != null) gameReviewEntity.setScoreStrategy(updateGameReviewRequestDTO.getScoreStrategy());
+    if (updateGameReviewRequestDTO.getScoreManner() != null) gameReviewEntity.setScoreManner(updateGameReviewRequestDTO.getScoreManner());
+    if (updateGameReviewRequestDTO.getScorePunctuality() != null) gameReviewEntity.setScorePunctuality(updateGameReviewRequestDTO.getScorePunctuality());
+    if (updateGameReviewRequestDTO.getScoreCommunity() != null) gameReviewEntity.setScoreCommunity(updateGameReviewRequestDTO.getScoreCommunity());
+    if (updateGameReviewRequestDTO.getScorePoliteness() != null) gameReviewEntity.setScorePoliteness(updateGameReviewRequestDTO.getScorePoliteness());
+    if (updateGameReviewRequestDTO.getScoreRematch() != null) gameReviewEntity.setScoreRematch(updateGameReviewRequestDTO.getScoreRematch());
+    if (updateGameReviewRequestDTO.getComment() != null) gameReviewEntity.setComment(updateGameReviewRequestDTO.getComment());
+
+    gameReviewRepository.save(gameReviewEntity);
   }
 }
