@@ -20,6 +20,8 @@ public enum ErrorCode {
   GAME_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "탁구 경기를 찾을 수 없습니다."),
   GAME_STATE_NOT_FOUND(HttpStatus.NOT_FOUND, "탁구 상태를 찾을 수 없습니다."),
   GAME_NOT_RECRUITING(HttpStatus.NOT_FOUND, "상대방 모집중이 아닙니다."),
+  GAME_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 경기를 삭제할 권한이 없습니다."),
+  GAME_NOT_DELETABLE(HttpStatus.CONFLICT, "해당 상태의 경기는 삭제할 수 없습니다."),
 
   // 탁구 경기 신청
   GAME_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "탁구 경기 신청 정보를 찾을 수 없습니다."),

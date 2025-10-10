@@ -309,6 +309,33 @@ public class GameService {
     gameApplicationRepository.deleteByGameInfoId(gameInfoId);
   }
 
+  @Transactional
+  public void deleteGame(String gameInfoId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    GameInfoEntity gameInfoEntity = gameInfoRepository.findById(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
+
+    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    if (!userId.equals(gameStateEntity.getDefenderId())) {
+      throw new CustomException(ErrorCode.GAME_DELETE_FORBIDDEN);
+    }
+
+    boolean deletable = gameStateEntity.getState() == GameState.RECRUITING || gameStateEntity.getState() == GameState.WAITING;
+    if (!deletable) {
+      throw new CustomException(ErrorCode.GAME_NOT_DELETABLE);
+    }
+
+    if (gameInfoEntity.getAcceptanceType() == AcceptanceType.SELECT) {
+      gameApplicationRepository.deleteByGameInfoId(gameInfoId);
+    }
+    gameStateRepository.deleteByGameInfoId(gameInfoId);
+    gameInfoRepository.deleteById(gameInfoId);
+  }
+
   private GameInfoDTO cloneWithPlaceName(GameInfoEntity src, String placeName) {
     GameInfoDTO g = new GameInfoDTO();
     g.setId(src.getId());

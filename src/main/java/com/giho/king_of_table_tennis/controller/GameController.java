@@ -214,4 +214,18 @@ public class GameController {
     gameService.acceptApplicant(gameInfoId, applicantId);
     return ResponseEntity.noContent().build(); // 204
   }
+
+  @Operation(summary = "경기 취소", description = "시작 전(RECRUITING, WAITING)인 경기를 취소하는 API / 관련 데이터도 함께 삭제", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "경기 취소 완료(본문 없음)"
+  )
+  @DeleteMapping("/{gameInfoId}")
+  public ResponseEntity<Void> deleteGame(
+    @PathVariable String gameInfoId
+  ) {
+
+    gameService.deleteGame(gameInfoId);
+    return ResponseEntity.noContent().build();
+  }
 }

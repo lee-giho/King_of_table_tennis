@@ -16,4 +16,6 @@ public interface GameStateRepository extends JpaRepository<GameStateEntity, Stri
   Optional<GameStateEntity> findWithLockByGameInfoId(String gameInfoId);
 
   List<GameStateEntity> findAllByGameInfoIdIn(List<String> gameInfoIds);
+
+  void deleteByGameInfoId(String gameInfoId);
 }
