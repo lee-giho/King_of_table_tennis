@@ -31,7 +31,9 @@ public enum ErrorCode {
   SELF_REVIEW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신에게 리뷰를 작성할 수 없습니다."),
   INVALID_REVIEWEE(HttpStatus.BAD_REQUEST, "해당 경기에 속하지 않은 사용자입니다."),
   GAME_NOT_ENDED(HttpStatus.CONFLICT, "탁구 경기가 아직 종료되지 않았습니다."),
-  UNAUTHORIZED_REVIEW_EDIT(HttpStatus.FORBIDDEN, "본인이 작성한 리뷰만 수정할 수 있습니다."),
+  GAME_REVIEW_EDIT_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 리뷰를 수정할 권한이 없습니다."),
+  GAME_REVIEW_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 리뷰를 삭제할 권한이 없습니다."),
+
 
   // 인증번호 / 이메일
   VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않습니다."),

@@ -168,7 +168,7 @@ public class ReviewService {
       .orElseThrow(() -> new CustomException(ErrorCode.GAME_REVIEW_NOT_FOUND));
 
     if (!gameReviewEntity.getReviewerId().equals(userId)) {
-      throw new CustomException(ErrorCode.UNAUTHORIZED_REVIEW_EDIT);
+      throw new CustomException(ErrorCode.GAME_REVIEW_EDIT_FORBIDDEN);
     }
 
     if (updateGameReviewRequestDTO.getScoreServe() != null) gameReviewEntity.setScoreServe(updateGameReviewRequestDTO.getScoreServe());
@@ -184,5 +184,20 @@ public class ReviewService {
     if (updateGameReviewRequestDTO.getComment() != null) gameReviewEntity.setComment(updateGameReviewRequestDTO.getComment());
 
     gameReviewRepository.save(gameReviewEntity);
+  }
+
+  @Transactional
+  public void deleteReview(String gameReviewId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    GameReviewEntity gameReviewEntity = gameReviewRepository.findById(gameReviewId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_REVIEW_NOT_FOUND));
+
+    if (!gameReviewEntity.getReviewerId().equals(userId)) {
+      throw new CustomException(ErrorCode.GAME_REVIEW_DELETE_FORBIDDEN);
+    }
+
+    gameReviewRepository.delete(gameReviewEntity);
   }
 }

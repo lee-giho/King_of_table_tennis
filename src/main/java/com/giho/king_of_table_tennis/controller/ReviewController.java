@@ -87,4 +87,18 @@ public class ReviewController {
     reviewService.updateGameReview(gameReviewId, updateGameReviewRequestDTO);
     return ResponseEntity.noContent().build();
   }
+
+  @Operation(summary = "경기 리뷰 삭제", description = "경기 종료 후 작성했던 리뷰 삭제하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "경기 리뷰 삭제 완료(본문 없음)"
+  )
+  @DeleteMapping("/{gameReviewId}")
+  public ResponseEntity<Void> deleteReview(
+    @PathVariable String gameReviewId
+  ) {
+
+    reviewService.deleteReview(gameReviewId);
+    return ResponseEntity.noContent().build();
+  }
 }
