@@ -6,9 +6,7 @@ import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -110,13 +108,21 @@ public class GameService {
     return new BooleanResponseDTO(true);
   }
 
-  public RecruitingGameListDTO getRecruitingGameList(String tableTennisCourtId) {
+  public PageResponse<RecruitingGameDTO> getRecruitingGameList(String tableTennisCourtId, int page, int size) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
-    List<RecruitingGameDTO> recruitingGames = gameInfoRepository.findRecruitingGamesByPlaceAndDateAfter(tableTennisCourtId, LocalDateTime.now(), userId);
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "gameDate"));
 
-    return new RecruitingGameListDTO(recruitingGames);
+    Page<RecruitingGameDTO> recruitingGamePage = gameInfoRepository.findRecruitingGamesByPlaceAndDateAfter(tableTennisCourtId, LocalDateTime.now(), userId, pageable);
+
+    return new PageResponse<>(
+      recruitingGamePage.getContent(),
+      recruitingGamePage.getTotalPages(),
+      recruitingGamePage.getTotalElements(),
+      recruitingGamePage.getNumber(),
+      recruitingGamePage.getSize()
+    );
   }
 
   public GameDetailInfo getGameDetailInfo(String gameInfoId) {

@@ -79,9 +79,14 @@ public class GameController {
     )
   )
   @GetMapping("/recruitingList/{tableTennisCourtId}")
-  public ResponseEntity<RecruitingGameListDTO> getRecruitingGameList(@PathVariable String tableTennisCourtId) {
-    RecruitingGameListDTO recruitingGameListDTO = gameService.getRecruitingGameList(tableTennisCourtId);
-    return ResponseEntity.ok(recruitingGameListDTO);
+  public ResponseEntity<PageResponse<RecruitingGameDTO>> getRecruitingGameList(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "5") int size,
+    @PathVariable String tableTennisCourtId
+  ) {
+
+    PageResponse<RecruitingGameDTO> pageResponse = gameService.getRecruitingGameList(tableTennisCourtId, page, size);
+    return ResponseEntity.ok(pageResponse);
   }
 
   @Operation(summary = "경기에 대한 자세한 정보 불러오기", description = "참가자 정보와 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))

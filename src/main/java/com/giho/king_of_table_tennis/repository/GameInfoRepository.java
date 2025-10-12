@@ -35,7 +35,7 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
     WHERE g.place = :place
       AND g.gameDate > :now
   """)
-  List<RecruitingGameDTO> findRecruitingGamesByPlaceAndDateAfter(@Param("place") String place, @Param("now") LocalDateTime now, @Param("userId") String userId);
+  Page<RecruitingGameDTO> findRecruitingGamesByPlaceAndDateAfter(@Param("place") String place, @Param("now") LocalDateTime now, @Param("userId") String userId, Pageable pageable);
 
   Page<GameInfoEntity> findByPlaceAndGameDateAfterOrderByGameDateAsc(String place, LocalDateTime now, Pageable pageable);
 
