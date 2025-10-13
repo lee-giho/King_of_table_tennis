@@ -35,7 +35,27 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
     WHERE g.place = :place
       AND g.gameDate > :now
   """)
-  Page<RecruitingGameDTO> findRecruitingGamesByPlaceAndDateAfter(@Param("place") String place, @Param("now") LocalDateTime now, @Param("userId") String userId, Pageable pageable);
+  Page<RecruitingGameDTO> findRegisteredGamesByPlaceAndDate(@Param("place") String place, @Param("now") LocalDateTime now, @Param("userId") String userId, Pageable pageable);
+
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.RecruitingGameDTO(
+      g,
+      s.defenderId,
+      s.state,
+      CASE WHEN s.defenderId = :userId THEN true ELSE false END,
+      CASE WHEN EXISTS (
+        SELECT 1
+        FROM GameApplicationEntity ga
+        WHERE ga.gameInfoId = g.id
+          AND ga.applicantId = :userId
+      ) THEN true ELSE false END
+    )
+    FROM GameInfoEntity g
+    JOIN GameStateEntity s ON g.id = s.gameInfoId
+    WHERE g.place = :place
+      AND g.gameDate < :now
+  """)
+  Page<RecruitingGameDTO> findEndedGamesByPlaceAndDate(@Param("place") String place, @Param("now") LocalDateTime now, @Param("userId") String userId, Pageable pageable);
 
   Page<GameInfoEntity> findByPlaceAndGameDateAfterOrderByGameDateAsc(String place, LocalDateTime now, Pageable pageable);
 

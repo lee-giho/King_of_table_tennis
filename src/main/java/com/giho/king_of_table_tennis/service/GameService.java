@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,13 +109,19 @@ public class GameService {
     return new BooleanResponseDTO(true);
   }
 
-  public PageResponse<RecruitingGameDTO> getRecruitingGameList(String tableTennisCourtId, int page, int size) {
+  public PageResponse<RecruitingGameDTO> getRecruitingGameList(String tableTennisCourtId, String type, int page, int size) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "gameDate"));
 
-    Page<RecruitingGameDTO> recruitingGamePage = gameInfoRepository.findRecruitingGamesByPlaceAndDateAfter(tableTennisCourtId, LocalDateTime.now(), userId, pageable);
+    Page<RecruitingGameDTO> recruitingGamePage;
+
+    if (type.equals("REGISTERED")) {
+      recruitingGamePage = gameInfoRepository.findRegisteredGamesByPlaceAndDate(tableTennisCourtId, LocalDateTime.now(), userId, pageable);
+    } else {
+      recruitingGamePage = gameInfoRepository.findEndedGamesByPlaceAndDate(tableTennisCourtId, LocalDateTime.now(), userId, pageable);
+    }
 
     return new PageResponse<>(
       recruitingGamePage.getContent(),

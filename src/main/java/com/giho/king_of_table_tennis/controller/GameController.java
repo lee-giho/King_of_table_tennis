@@ -78,14 +78,15 @@ public class GameController {
       schema = @Schema(implementation = RecruitingGameListDTO.class)
     )
   )
-  @GetMapping("/recruitingList/{tableTennisCourtId}")
+  @GetMapping("/recruitingList/{tableTennisCourtId}/{type}")
   public ResponseEntity<PageResponse<RecruitingGameDTO>> getRecruitingGameList(
     @RequestParam(name = "page", defaultValue = "0") int page,
     @RequestParam(name = "size", defaultValue = "5") int size,
-    @PathVariable String tableTennisCourtId
+    @PathVariable String tableTennisCourtId,
+    @PathVariable String type
   ) {
 
-    PageResponse<RecruitingGameDTO> pageResponse = gameService.getRecruitingGameList(tableTennisCourtId, page, size);
+    PageResponse<RecruitingGameDTO> pageResponse = gameService.getRecruitingGameList(tableTennisCourtId, type, page, size);
     return ResponseEntity.ok(pageResponse);
   }
 
