@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +29,8 @@ public class GameService {
   private final UserRepository userRepository;
 
   private final TableTennisCourtRepository tableTennisCourtRepository;
+
+  private final AsyncService asyncService;
 
   @Transactional
   public BooleanResponseDTO createGame(CreateGameRequestDTO createGameRequestDTO) {
@@ -112,6 +113,8 @@ public class GameService {
   public PageResponse<RecruitingGameDTO> getRecruitingGameList(String tableTennisCourtId, String type, int page, int size) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
+
+    asyncService.expireOutdatedGames(tableTennisCourtId); // 비동기로 경기 만료 처리
 
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "gameDate"));
 
