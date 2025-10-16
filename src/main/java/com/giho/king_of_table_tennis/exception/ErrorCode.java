@@ -20,6 +20,22 @@ public enum ErrorCode {
   GAME_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "탁구 경기를 찾을 수 없습니다."),
   GAME_STATE_NOT_FOUND(HttpStatus.NOT_FOUND, "탁구 상태를 찾을 수 없습니다."),
   GAME_NOT_RECRUITING(HttpStatus.NOT_FOUND, "상대방 모집중이 아닙니다."),
+  GAME_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 경기를 삭제할 권한이 없습니다."),
+  GAME_NOT_DELETABLE(HttpStatus.CONFLICT, "해당 상태의 경기는 삭제할 수 없습니다."),
+
+  // 탁구 경기 신청
+  GAME_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "탁구 경기 신청 정보를 찾을 수 없습니다."),
+  CHALLENGER_ALREADY_EXIST(HttpStatus.CONFLICT, "이미 탁구 경기의 상대방이 존재합니다."),
+
+  // 탁구 경기 리뷰
+  GAME_REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "탁구 경기 리뷰를 찾을 수 없습니다."),
+  REVIEW_ALREADY_EXIST(HttpStatus.CONFLICT, "이미 작성한 리뷰가 존재합니다."),
+  SELF_REVIEW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신에게 리뷰를 작성할 수 없습니다."),
+  INVALID_REVIEWEE(HttpStatus.BAD_REQUEST, "해당 경기에 속하지 않은 사용자입니다."),
+  GAME_NOT_ENDED(HttpStatus.CONFLICT, "탁구 경기가 아직 종료되지 않았습니다."),
+  GAME_REVIEW_EDIT_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 리뷰를 수정할 권한이 없습니다."),
+  GAME_REVIEW_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 리뷰를 삭제할 권한이 없습니다."),
+
 
   // 인증번호 / 이메일
   VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않습니다."),
@@ -33,6 +49,7 @@ public enum ErrorCode {
 
   // 데이터베이스 처리
   DB_SAVE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 저장 중 오류가 발생했습니다."),
+  DB_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 삭제 중 오류가 발생했습니다."),
 
   // 인증/인가 관련
   TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),

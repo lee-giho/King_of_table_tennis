@@ -17,4 +17,5 @@ public class GameDetailInfoByUser {
   private GameStateEntity gameState;
   private boolean isMine;
   private long applicationCount;
+  private boolean hasReviewed;
 }

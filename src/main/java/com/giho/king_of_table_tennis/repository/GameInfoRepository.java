@@ -18,13 +18,44 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
   List<GameInfoEntity> findAllByPlaceAndGameDateAfter(String place, LocalDateTime now);
 
   @Query("""
-    SELECT new com.giho.king_of_table_tennis.dto.RecruitingGameDTO(g, s.defenderId, s.state)
+    SELECT new com.giho.king_of_table_tennis.dto.RecruitingGameDTO(
+      g,
+      s.defenderId,
+      s.state,
+      CASE WHEN s.defenderId = :userId THEN true ELSE false END,
+      CASE WHEN EXISTS (
+        SELECT 1
+        FROM GameApplicationEntity ga
+        WHERE ga.gameInfoId = g.id
+          AND ga.applicantId = :userId
+      ) THEN true ELSE false END
+    )
     FROM GameInfoEntity g
     JOIN GameStateEntity s ON g.id = s.gameInfoId
     WHERE g.place = :place
-    AND g.gameDate > :now
+      AND g.gameDate > :now
   """)
-  List<RecruitingGameDTO> findRecruitingGamesByPlaceAndDateAfter(@Param("place") String place, @Param("now") LocalDateTime now);
+  Page<RecruitingGameDTO> findRegisteredGamesByPlaceAndDate(@Param("place") String place, @Param("now") LocalDateTime now, @Param("userId") String userId, Pageable pageable);
+
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.RecruitingGameDTO(
+      g,
+      s.defenderId,
+      s.state,
+      CASE WHEN s.defenderId = :userId THEN true ELSE false END,
+      CASE WHEN EXISTS (
+        SELECT 1
+        FROM GameApplicationEntity ga
+        WHERE ga.gameInfoId = g.id
+          AND ga.applicantId = :userId
+      ) THEN true ELSE false END
+    )
+    FROM GameInfoEntity g
+    JOIN GameStateEntity s ON g.id = s.gameInfoId
+    WHERE g.place = :place
+      AND g.gameDate < :now
+  """)
+  Page<RecruitingGameDTO> findEndedGamesByPlaceAndDate(@Param("place") String place, @Param("now") LocalDateTime now, @Param("userId") String userId, Pageable pageable);
 
   Page<GameInfoEntity> findByPlaceAndGameDateAfterOrderByGameDateAsc(String place, LocalDateTime now, Pageable pageable);
 
@@ -32,7 +63,15 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
     SELECT g, s, d, c, dTti, cTti,
       ( SELECT COUNT(ga)
         FROM GameApplicationEntity ga
-        WHERE ga.gameInfoId = g.id) AS applicationCount
+        WHERE ga.gameInfoId = g.id
+      ) AS applicationCount,
+      ( CASE WHEN EXISTS (
+          SELECT 1
+          FROM GameReviewEntity gr
+          WHERE gr.gameInfoId = g.id
+            AND gr.reviewerId = :userId
+        ) THEN true ELSE false END
+      ) AS hasReviewed
     FROM GameInfoEntity g
     JOIN GameStateEntity s ON g.id = s.gameInfoId
     JOIN UserEntity d ON d.id = s.defenderId

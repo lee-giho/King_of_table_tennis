@@ -6,9 +6,7 @@ import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -31,6 +29,8 @@ public class GameService {
   private final UserRepository userRepository;
 
   private final TableTennisCourtRepository tableTennisCourtRepository;
+
+  private final AsyncService asyncService;
 
   @Transactional
   public BooleanResponseDTO createGame(CreateGameRequestDTO createGameRequestDTO) {
@@ -110,19 +110,29 @@ public class GameService {
     return new BooleanResponseDTO(true);
   }
 
-  public RecruitingGameListDTO getRecruitingGameList(String tableTennisCourtId) {
+  public PageResponse<RecruitingGameDTO> getRecruitingGameList(String tableTennisCourtId, String type, int page, int size) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
-    List<RecruitingGameDTO> recruitingGames = gameInfoRepository.findRecruitingGamesByPlaceAndDateAfter(tableTennisCourtId, LocalDateTime.now());
+    asyncService.expireOutdatedGames(tableTennisCourtId); // 비동기로 경기 만료 처리
 
-    for (RecruitingGameDTO dto : recruitingGames) {
-      if (dto.getCreatorId().equals(userId)) {
-        dto.setMine(true);
-      }
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "gameDate"));
+
+    Page<RecruitingGameDTO> recruitingGamePage;
+
+    if (type.equals("REGISTERED")) {
+      recruitingGamePage = gameInfoRepository.findRegisteredGamesByPlaceAndDate(tableTennisCourtId, LocalDateTime.now(), userId, pageable);
+    } else {
+      recruitingGamePage = gameInfoRepository.findEndedGamesByPlaceAndDate(tableTennisCourtId, LocalDateTime.now(), userId, pageable);
     }
 
-    return new RecruitingGameListDTO(recruitingGames);
+    return new PageResponse<>(
+      recruitingGamePage.getContent(),
+      recruitingGamePage.getTotalPages(),
+      recruitingGamePage.getTotalElements(),
+      recruitingGamePage.getNumber(),
+      recruitingGamePage.getSize()
+    );
   }
 
   public GameDetailInfo getGameDetailInfo(String gameInfoId) {
@@ -250,6 +260,7 @@ public class GameService {
         UserTableTennisInfoEntity dTti = (UserTableTennisInfoEntity) row[4];
         UserTableTennisInfoEntity cTti = (UserTableTennisInfoEntity) row[5];
         long applicationCount = (long) row[6];
+        boolean hasReviewed = (Boolean) row[7];
 
         UserInfo defenderInfo = toUserInfo(d, dTti);
         UserInfo challengerInfo = (c != null) ? toUserInfo(c, cTti) : null;
@@ -265,11 +276,80 @@ public class GameService {
           gameInfoDTO,
           s,
           isMine,
-          applicationCount
+          applicationCount,
+          hasReviewed
         );
       }).toList();
 
     return new PageImpl<>(gameDetailInfoByUsers, pageable, rawPage.getTotalElements());
+  }
+
+  public BooleanResponseDTO deleteGameParticipation(String gameInfoId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    GameApplicationEntity gameApplicationEntity = gameApplicationRepository.findByGameInfoIdAndApplicantId(gameInfoId, userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_APPLICATION_NOT_FOUND));
+
+    try {
+      gameApplicationRepository.delete(gameApplicationEntity);
+      return new BooleanResponseDTO(true);
+    } catch (Exception e) {
+      throw new CustomException(ErrorCode.DB_DELETE_ERROR);
+    }
+  }
+
+  public Page<UserInfo> getApplicantInfo(Pageable pageable, String gameInfoId) {
+    Page<UserInfo> userInfoPage = gameApplicationRepository.findApplicantByGameInfoIdOrderByApplicationAtAsc(gameInfoId, pageable);
+    System.out.println(userInfoPage.getTotalElements());
+    return userInfoPage;
+  }
+
+  @Transactional
+  public void acceptApplicant(String gameInfoId, String applicantId) {
+    GameStateEntity gameState = gameStateRepository.findByGameInfoId(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    // 신청 존재 검증
+    boolean exists = gameApplicationRepository.existsByGameInfoIdAndApplicantId(gameInfoId, applicantId);
+    System.out.println(exists);
+    if (!exists) throw new CustomException(ErrorCode.GAME_APPLICATION_NOT_FOUND);
+
+    // 이미 상대방이 있는지 확인
+    if (gameState.getChallengerId() != null) throw new CustomException(ErrorCode.CHALLENGER_ALREADY_EXIST);
+
+    gameState.setChallengerId(applicantId);
+    gameState.setState(GameState.WAITING);
+    gameStateRepository.save(gameState);
+
+    gameApplicationRepository.deleteByGameInfoId(gameInfoId);
+  }
+
+  @Transactional
+  public void deleteGame(String gameInfoId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    GameInfoEntity gameInfoEntity = gameInfoRepository.findById(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
+
+    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    if (!userId.equals(gameStateEntity.getDefenderId())) {
+      throw new CustomException(ErrorCode.GAME_DELETE_FORBIDDEN);
+    }
+
+    boolean deletable = gameStateEntity.getState() == GameState.RECRUITING || gameStateEntity.getState() == GameState.WAITING;
+    if (!deletable) {
+      throw new CustomException(ErrorCode.GAME_NOT_DELETABLE);
+    }
+
+    if (gameInfoEntity.getAcceptanceType() == AcceptanceType.SELECT) {
+      gameApplicationRepository.deleteByGameInfoId(gameInfoId);
+    }
+    gameStateRepository.deleteByGameInfoId(gameInfoId);
+    gameInfoRepository.deleteById(gameInfoId);
   }
 
   private GameInfoDTO cloneWithPlaceName(GameInfoEntity src, String placeName) {

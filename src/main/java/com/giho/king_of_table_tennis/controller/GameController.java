@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -77,10 +78,16 @@ public class GameController {
       schema = @Schema(implementation = RecruitingGameListDTO.class)
     )
   )
-  @GetMapping("/recruitingList/{tableTennisCourtId}")
-  public ResponseEntity<RecruitingGameListDTO> getRecruitingGameList(@PathVariable String tableTennisCourtId) {
-    RecruitingGameListDTO recruitingGameListDTO = gameService.getRecruitingGameList(tableTennisCourtId);
-    return ResponseEntity.ok(recruitingGameListDTO);
+  @GetMapping("/recruitingList/{tableTennisCourtId}/{type}")
+  public ResponseEntity<PageResponse<RecruitingGameDTO>> getRecruitingGameList(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "5") int size,
+    @PathVariable String tableTennisCourtId,
+    @PathVariable String type
+  ) {
+
+    PageResponse<RecruitingGameDTO> pageResponse = gameService.getRecruitingGameList(tableTennisCourtId, type, page, size);
+    return ResponseEntity.ok(pageResponse);
   }
 
   @Operation(summary = "경기에 대한 자세한 정보 불러오기", description = "참가자 정보와 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))
@@ -101,7 +108,7 @@ public class GameController {
   @Operation(summary = "페이징을 통해 경기에 대한 자세한 정보 한 개씩 불러오기", description = "참가자 정보와 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
-    description = "경기에 대한 참가자와 경기 정보 반환",
+    description = "페이징을 통한 경기에 대한 참가자와 경기 정보 반환",
     content = @Content(
       mediaType = "application/json",
       schema = @Schema(implementation = PageResponse.class)
@@ -130,7 +137,7 @@ public class GameController {
   @Operation(summary = "페이징을 통해 경기에 대한 자세한 정보 불러오기 / 마이페이지의 탁구 경기 내역", description = "사용자 아이디와 경기 전/후로 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
-    description = "경기에 대한 참가자와 경기 정보 반환",
+    description = "페이징을 통한 경기에 대한 참가자와 경기 정보 반환",
     content = @Content(
       mediaType = "application/json",
       schema = @Schema(implementation = PageResponse.class)
@@ -154,5 +161,77 @@ public class GameController {
     );
 
     return ResponseEntity.ok(body);
+  }
+
+  @Operation(summary = "탁구 경기 참가 취소", description = "신청했던 탁구 경기를 취소하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "탁구 경기 참가 신청 취소 완료 여부 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = BooleanResponseDTO.class)
+    )
+  )
+  @DeleteMapping("/participation/{gameInfoId}")
+  public ResponseEntity<BooleanResponseDTO> cancelGameParticipation(@PathVariable String gameInfoId) {
+    BooleanResponseDTO booleanResponseDTO = gameService.deleteGameParticipation(gameInfoId);
+    return ResponseEntity.ok(booleanResponseDTO);
+  }
+
+  @Operation(summary = "탁구 경기 참가자 목록", description = "해당 경기에 신청한 참가자들의 목록을 페이징을 통해 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "페이징을 통한 탁구 경기 참가자 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/{gameInfoId}/applicant")
+  public ResponseEntity<PageResponse<UserInfo>> getApplicantInfo(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "5") int size,
+    @PathVariable String gameInfoId) {
+
+    Pageable pageable = PageRequest.of(page, size);
+    Page<UserInfo> userInfoPage = gameService.getApplicantInfo(pageable, gameInfoId);
+
+    PageResponse<UserInfo> body = new PageResponse<>(
+      userInfoPage.getContent(),
+      userInfoPage.getTotalPages(),
+      userInfoPage.getTotalElements(),
+      userInfoPage.getNumber(),
+      userInfoPage.getSize()
+    );
+
+    return ResponseEntity.ok(body);
+  }
+
+  @Operation(summary = "경기 신청자 수락", description = "특정 경기의 신청자 한 명을 수락하고, 해당 경기의 모든 신청 레코드를 삭제한 뒤 경기 상태를 WAITING으로 변경하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "신청자 수락 완료(본문 없음)"
+  )
+  @PatchMapping("/{gameInfoId}/applications/{applicantId}/acceptance")
+  public ResponseEntity<Void> acceptApplicant(
+    @PathVariable String gameInfoId,
+    @PathVariable String applicantId) {
+
+    gameService.acceptApplicant(gameInfoId, applicantId);
+    return ResponseEntity.noContent().build(); // 204
+  }
+
+  @Operation(summary = "경기 취소", description = "시작 전(RECRUITING, WAITING)인 경기를 취소하는 API / 관련 데이터도 함께 삭제", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "경기 취소 완료(본문 없음)"
+  )
+  @DeleteMapping("/{gameInfoId}")
+  public ResponseEntity<Void> deleteGame(
+    @PathVariable String gameInfoId
+  ) {
+
+    gameService.deleteGame(gameInfoId);
+    return ResponseEntity.noContent().build();
   }
 }

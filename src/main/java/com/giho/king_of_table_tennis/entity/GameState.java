@@ -4,5 +4,6 @@ public enum GameState {
   RECRUITING, // 상대 모집 중
   WAITING, // 게임 시작 기다리는 중
   DOING, // 게임 하는 중
-  END // 끝난 게임
+  END, // 끝난 경기
+  EXPIRED // 경기를 하지 못하고 만료된 경기
 }

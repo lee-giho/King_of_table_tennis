@@ -16,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.io.File;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -95,7 +93,7 @@ public class UserService {
     return mySimpleInfoResponse;
   }
 
-  public UserInfo getUserInfo () {
+  public UserInfo getMyInfo () {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
@@ -238,5 +236,10 @@ public class UserService {
       System.out.println(e);
       return new BooleanResponseDTO(false);
     }
+  }
+
+  public UserInfo getUserInfo(String userId) {
+    UserInfo userInfo = userRepository.findUserInfoById(userId);
+    return userInfo;
   }
 }
