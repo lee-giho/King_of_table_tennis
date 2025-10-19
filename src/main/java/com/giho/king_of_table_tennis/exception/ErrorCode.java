@@ -36,6 +36,8 @@ public enum ErrorCode {
   GAME_REVIEW_EDIT_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 리뷰를 수정할 권한이 없습니다."),
   GAME_REVIEW_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 리뷰를 삭제할 권한이 없습니다."),
 
+  // 게시글
+  INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "게시글 카테고리가 유효하지 않습니다."),
 
   // 인증번호 / 이메일
   VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않습니다."),
