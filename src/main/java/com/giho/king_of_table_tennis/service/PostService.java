@@ -1,5 +1,7 @@
 package com.giho.king_of_table_tennis.service;
 
+import com.giho.king_of_table_tennis.dto.PageResponse;
+import com.giho.king_of_table_tennis.dto.PostDTO;
 import com.giho.king_of_table_tennis.dto.RegisterPostRequestDTO;
 import com.giho.king_of_table_tennis.entity.PostCategory;
 import com.giho.king_of_table_tennis.entity.PostEntity;
@@ -7,6 +9,10 @@ import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -42,5 +48,24 @@ public class PostService {
 
 
     postRepository.save(postEntity);
+  }
+
+  public PageResponse<PostDTO> getPost(int page, int size, String userId) {
+    if (userId == null) {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      userId = authentication.getName();
+    }
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
+
+    Page<PostDTO> myPost = postRepository.findAllByWriterId(userId, pageable);
+
+    return new PageResponse<>(
+      myPost.getContent(),
+      myPost.getTotalPages(),
+      myPost.getTotalElements(),
+      myPost.getNumber(),
+      myPost.getSize()
+    );
   }
 }
