@@ -37,6 +37,8 @@ public enum ErrorCode {
   GAME_REVIEW_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 리뷰를 삭제할 권한이 없습니다."),
 
   // 게시글
+  POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글을 찾을 수 없습니다."),
+  POST_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 게시물을 삭제할 권한이 없습니다."),
   INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "게시글 카테고리가 유효하지 않습니다."),
 
   // 인증번호 / 이메일

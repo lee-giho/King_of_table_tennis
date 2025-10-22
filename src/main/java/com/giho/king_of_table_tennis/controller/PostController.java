@@ -74,4 +74,18 @@ public class PostController {
     PageResponse<PostDTO> pageResponse = postService.getPost(page, size, userId);
     return ResponseEntity.ok(pageResponse);
   }
+
+  @Operation(summary = "게시글 삭제", description = "자신이 작성한 게시글 삭제하는는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "게시글 삭제 완료 완료(본문 없음)"
+  )
+  @DeleteMapping("/{postId}")
+  public ResponseEntity<Void> deletePost(
+    @PathVariable String postId
+  ) {
+
+    postService.deletePost(postId);
+    return ResponseEntity.noContent().build();
+  }
 }

@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -67,5 +68,21 @@ public class PostService {
       myPost.getNumber(),
       myPost.getSize()
     );
+  }
+
+  @Transactional
+  public void deletePost(String postId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    PostEntity postEntity = postRepository.findById(postId)
+      .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+    // 자신이 작성한 게시물이 아닐 경우
+    if (!postEntity.getWriterId().equals(userId)) {
+      throw new CustomException(ErrorCode.POST_DELETE_FORBIDDEN);
+    }
+
+    postRepository.delete(postEntity);
   }
 }
