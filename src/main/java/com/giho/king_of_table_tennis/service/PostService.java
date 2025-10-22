@@ -3,6 +3,7 @@ package com.giho.king_of_table_tennis.service;
 import com.giho.king_of_table_tennis.dto.PageResponse;
 import com.giho.king_of_table_tennis.dto.PostDTO;
 import com.giho.king_of_table_tennis.dto.RegisterPostRequestDTO;
+import com.giho.king_of_table_tennis.dto.UpdatePostRequestDTO;
 import com.giho.king_of_table_tennis.entity.PostCategory;
 import com.giho.king_of_table_tennis.entity.PostEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
@@ -84,5 +85,24 @@ public class PostService {
     }
 
     postRepository.delete(postEntity);
+  }
+
+  @Transactional
+  public void updatePost(String postId, UpdatePostRequestDTO updatePostRequestDTO) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    PostEntity postEntity = postRepository.findById(postId)
+      .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+    if (!postEntity.getWriterId().equals(userId)) {
+      throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
+    }
+
+    if (updatePostRequestDTO.getTitle() != null) postEntity.setTitle(updatePostRequestDTO.getTitle());
+    if (updatePostRequestDTO.getCategory() != null) postEntity.setCategory(updatePostRequestDTO.getCategory());
+    if (updatePostRequestDTO.getContent() != null) postEntity.setContent(updatePostRequestDTO.getContent());
+
+    postRepository.save(postEntity);
   }
 }

@@ -3,6 +3,7 @@ package com.giho.king_of_table_tennis.controller;
 import com.giho.king_of_table_tennis.dto.PageResponse;
 import com.giho.king_of_table_tennis.dto.PostDTO;
 import com.giho.king_of_table_tennis.dto.RegisterPostRequestDTO;
+import com.giho.king_of_table_tennis.dto.UpdatePostRequestDTO;
 import com.giho.king_of_table_tennis.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -78,7 +79,7 @@ public class PostController {
   @Operation(summary = "게시글 삭제", description = "자신이 작성한 게시글 삭제하는는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "204",
-    description = "게시글 삭제 완료 완료(본문 없음)"
+    description = "게시글 삭제 완료(본문 없음)"
   )
   @DeleteMapping("/{postId}")
   public ResponseEntity<Void> deletePost(
@@ -86,6 +87,21 @@ public class PostController {
   ) {
 
     postService.deletePost(postId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Operation(summary = "게시글 수정", description = "자신이 작성했던 게시글 수정하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "게시글 수정 완료(본문 없음)"
+  )
+  @PatchMapping("/{postId}")
+  public ResponseEntity<Void> patchPost(
+    @PathVariable String postId,
+    @RequestBody UpdatePostRequestDTO updatePostRequestDTO
+  ) {
+
+    postService.updatePost(postId, updatePostRequestDTO);
     return ResponseEntity.noContent().build();
   }
 }
