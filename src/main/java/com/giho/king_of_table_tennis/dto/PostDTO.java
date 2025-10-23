@@ -25,6 +25,8 @@ public class PostDTO {
 
   private LocalDateTime writeAt;
 
+  private boolean isUpdated;
+
   public PostDTO(
     String id,
     String writerId,
@@ -39,7 +41,8 @@ public class PostDTO {
     String title,
     PostCategory category,
     String content,
-    LocalDateTime writeAt
+    LocalDateTime writeAt,
+    boolean isUpdated
   ) {
     this.id = id;
     this.writer = new UserInfo(
@@ -52,5 +55,6 @@ public class PostDTO {
     this.category = category;
     this.content = content;
     this.writeAt = writeAt;
+    this.isUpdated = isUpdated;
   }
 }

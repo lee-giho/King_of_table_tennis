@@ -4,6 +4,7 @@ import com.giho.king_of_table_tennis.dto.PageResponse;
 import com.giho.king_of_table_tennis.dto.PostDTO;
 import com.giho.king_of_table_tennis.dto.RegisterPostRequestDTO;
 import com.giho.king_of_table_tennis.dto.UpdatePostRequestDTO;
+import com.giho.king_of_table_tennis.entity.PostCategory;
 import com.giho.king_of_table_tennis.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,15 +17,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Post-Controller", description = "게시물 관련 API")
+@Tag(name = "Post-Controller", description = "게시글 관련 API")
 @RequestMapping("/api/post")
 public class PostController {
 
   private final PostService postService;
 
-  @Operation(summary = "게시글 작성", description = "작성한 게시물을 등록하는 API", security = @SecurityRequirement(name = "JWT"))
+  @Operation(summary = "게시글 작성", description = "작성한 게시글을 등록하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "201",
     description = "게시글 작성 완료(본문 없음)"
@@ -37,7 +40,7 @@ public class PostController {
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
-  @Operation(summary = "id로 게시물 불러오기", description = "postId로 해당 게시물의 정보를 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @Operation(summary = "id로 게시글 불러오기", description = "postId로 해당 게시글의 정보를 불러오는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
     description = "id에 해당하는 게시물 반환",
@@ -53,6 +56,26 @@ public class PostController {
 
     PostDTO postDTO = postService.getPostByPostId(postId);
     return ResponseEntity.ok(postDTO);
+  }
+
+  @Operation(summary = "전체 게시글 불러오기", description = "카테고리(GENERAL, SKILL, EQUIPMENT)를 선택해 게시글 목록을 페이징으로 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "게시글 리스트 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping()
+  public ResponseEntity<PageResponse<PostDTO>> getPostList(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "10") int size,
+    @RequestParam(name = "category", required = false) List<PostCategory> categories
+    ) {
+
+    PageResponse<PostDTO> pageResponse = postService.getPostList(page, size, categories);
+    return ResponseEntity.ok(pageResponse);
   }
 
   @Operation(summary = "게시글 삭제", description = "자신이 작성한 게시글 삭제하는는 API", security = @SecurityRequirement(name = "JWT"))

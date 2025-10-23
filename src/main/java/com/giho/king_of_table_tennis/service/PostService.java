@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -51,7 +52,7 @@ public class PostService {
     postRepository.save(postEntity);
   }
 
-  public PageResponse<PostDTO> getPost(int page, int size, String userId) {
+  public PageResponse<PostDTO> getPostByUser(int page, int size, String userId) {
     if (userId == null) {
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       userId = authentication.getName();
@@ -67,6 +68,21 @@ public class PostService {
       myPost.getTotalElements(),
       myPost.getNumber(),
       myPost.getSize()
+    );
+  }
+
+  public PageResponse<PostDTO> getPostList(int page, int size, List<PostCategory> categories) {
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+    Page<PostDTO> pageResponse = postRepository.findAllPostDTOByCategoryIn(categories, pageable);
+
+    return new PageResponse<>(
+      pageResponse.getContent(),
+      pageResponse.getTotalPages(),
+      pageResponse.getTotalElements(),
+      pageResponse.getNumber(),
+      pageResponse.getSize()
     );
   }
 
@@ -124,7 +140,8 @@ public class PostService {
       postEntity.getContent(),
       postEntity.getUpdatedAt() == null
         ? postEntity.getCreatedAt()
-        : postEntity.getUpdatedAt()
+        : postEntity.getUpdatedAt(),
+      postEntity.getUpdatedAt() != null
     );
   }
 }

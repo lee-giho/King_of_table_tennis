@@ -238,7 +238,7 @@ public class UserController {
     @RequestParam(name = "size", defaultValue = "10") int size
   ) {
 
-    PageResponse<PostDTO> pageResponse = postService.getPost(page, size, null);
+    PageResponse<PostDTO> pageResponse = postService.getPostByUser(page, size, null);
     return ResponseEntity.ok(pageResponse);
   }
 
@@ -258,7 +258,7 @@ public class UserController {
     @PathVariable String userId
   ) {
 
-    PageResponse<PostDTO> pageResponse = postService.getPost(page, size, userId);
+    PageResponse<PostDTO> pageResponse = postService.getPostByUser(page, size, userId);
     return ResponseEntity.ok(pageResponse);
   }
 }
