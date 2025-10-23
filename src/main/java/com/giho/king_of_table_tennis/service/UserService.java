@@ -97,7 +97,8 @@ public class UserService {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
-    UserInfo userInfo = userRepository.findUserInfoById(userId);
+    UserInfo userInfo = userRepository.findUserInfoById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
     return userInfo;
   }
@@ -239,7 +240,8 @@ public class UserService {
   }
 
   public UserInfo getUserInfo(String userId) {
-    UserInfo userInfo = userRepository.findUserInfoById(userId);
+    UserInfo userInfo = userRepository.findUserInfoById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     return userInfo;
   }
 }

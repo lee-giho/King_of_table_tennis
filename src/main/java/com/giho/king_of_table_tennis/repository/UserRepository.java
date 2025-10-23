@@ -33,7 +33,7 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
     FROM UserEntity u JOIN UserTableTennisInfoEntity tti ON u.id = tti.userId
     WHERE u.id = :id
   """)
-  UserInfo findUserInfoById(String id);
+  Optional<UserInfo> findUserInfoById(String id);
 
   List<UserEntity> findByIdIn(List<String> userIds);
 
