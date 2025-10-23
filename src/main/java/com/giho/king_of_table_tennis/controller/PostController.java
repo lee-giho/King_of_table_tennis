@@ -1,9 +1,13 @@
 package com.giho.king_of_table_tennis.controller;
 
+import com.giho.king_of_table_tennis.dto.PageResponse;
+import com.giho.king_of_table_tennis.dto.PostDTO;
 import com.giho.king_of_table_tennis.dto.RegisterPostRequestDTO;
 import com.giho.king_of_table_tennis.dto.UpdatePostRequestDTO;
 import com.giho.king_of_table_tennis.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +35,24 @@ public class PostController {
   ) {
     postService.registerPost(registerPostRequestDTO);
     return ResponseEntity.status(HttpStatus.CREATED).build();
+  }
+
+  @Operation(summary = "id로 게시물 불러오기", description = "postId로 해당 게시물의 정보를 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "id에 해당하는 게시물 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PostDTO.class)
+    )
+  )
+  @GetMapping("/{postId}")
+  public ResponseEntity<PostDTO> getPost(
+    @PathVariable String postId
+  ) {
+
+    PostDTO postDTO = postService.getPostByPostId(postId);
+    return ResponseEntity.ok(postDTO);
   }
 
   @Operation(summary = "게시글 삭제", description = "자신이 작성한 게시글 삭제하는는 API", security = @SecurityRequirement(name = "JWT"))

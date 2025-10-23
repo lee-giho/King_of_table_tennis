@@ -1,14 +1,12 @@
 package com.giho.king_of_table_tennis.service;
 
-import com.giho.king_of_table_tennis.dto.PageResponse;
-import com.giho.king_of_table_tennis.dto.PostDTO;
-import com.giho.king_of_table_tennis.dto.RegisterPostRequestDTO;
-import com.giho.king_of_table_tennis.dto.UpdatePostRequestDTO;
+import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.PostCategory;
 import com.giho.king_of_table_tennis.entity.PostEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.PostRepository;
+import com.giho.king_of_table_tennis.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,7 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -27,6 +24,8 @@ import java.util.UUID;
 public class PostService {
 
   private final PostRepository postRepository;
+
+  private final UserRepository userRepository;
 
   @Transactional
   public void registerPost(RegisterPostRequestDTO registerPostRequestDTO) {
@@ -71,6 +70,13 @@ public class PostService {
     );
   }
 
+  public PostDTO getPostByPostId(String postId) {
+    PostEntity postEntity = postRepository.findById(postId)
+      .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+    return toPostDTO(postEntity);
+  }
+
   @Transactional
   public void deletePost(String postId) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -104,5 +110,21 @@ public class PostService {
     if (updatePostRequestDTO.getContent() != null) postEntity.setContent(updatePostRequestDTO.getContent());
 
     postRepository.save(postEntity);
+  }
+
+  private PostDTO toPostDTO(PostEntity postEntity) {
+    UserInfo writer = userRepository.findUserInfoById(postEntity.getWriterId())
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    return new PostDTO(
+      postEntity.getId(),
+      writer,
+      postEntity.getTitle(),
+      postEntity.getCategory(),
+      postEntity.getContent(),
+      postEntity.getUpdatedAt() == null
+        ? postEntity.getCreatedAt()
+        : postEntity.getUpdatedAt()
+    );
   }
 }
