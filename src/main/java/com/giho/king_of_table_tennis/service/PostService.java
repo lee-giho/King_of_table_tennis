@@ -1,6 +1,7 @@
 package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.*;
+import com.giho.king_of_table_tennis.dto.enums.PostSortOption;
 import com.giho.king_of_table_tennis.entity.PostCategory;
 import com.giho.king_of_table_tennis.entity.PostEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
@@ -17,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,14 +55,17 @@ public class PostService {
   }
 
   public PageResponse<PostDTO> getPostByUser(int page, int size, String userId) {
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String currentUserId = authentication.getName();
+
     if (userId == null) {
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-      userId = authentication.getName();
+      userId = currentUserId;
     }
 
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
 
-    Page<PostDTO> myPost = postRepository.findAllByWriterId(userId, pageable);
+    Page<PostDTO> myPost = postRepository.findAllByWriterId(userId, currentUserId, pageable);
 
     return new PageResponse<>(
       myPost.getContent(),
@@ -71,11 +76,24 @@ public class PostService {
     );
   }
 
-  public PageResponse<PostDTO> getPostList(int page, int size, List<PostCategory> categories) {
+  public PageResponse<PostDTO> getPostList(int page, int size, List<PostCategory> categories, PostSortOption sortOption) {
 
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    // 카테고리가 비어 있으면 기본값으로 전체
+    if (categories == null || categories.isEmpty()) {
+      categories = Arrays.asList(PostCategory.values());
+    }
 
-    Page<PostDTO> pageResponse = postRepository.findAllPostDTOByCategoryIn(categories, pageable);
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    Sort sort = switch (sortOption) {
+      case CREATED_ASC -> Sort.by(Sort.Direction.ASC, "createdAt");
+      case CREATED_DESC -> Sort.by(Sort.Direction.DESC, "createdAt");
+    };
+
+    Pageable pageable = PageRequest.of(page, size, sort);
+
+    Page<PostDTO> pageResponse = postRepository.findAllPostDTOByCategoryIn(categories, userId, pageable);
 
     return new PageResponse<>(
       pageResponse.getContent(),
@@ -87,10 +105,13 @@ public class PostService {
   }
 
   public PostDTO getPostByPostId(String postId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
     PostEntity postEntity = postRepository.findById(postId)
       .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-    return toPostDTO(postEntity);
+    return toPostDTO(postEntity, userId);
   }
 
   @Transactional
@@ -128,7 +149,7 @@ public class PostService {
     postRepository.save(postEntity);
   }
 
-  private PostDTO toPostDTO(PostEntity postEntity) {
+  private PostDTO toPostDTO(PostEntity postEntity, String userId) {
     UserInfo writer = userRepository.findUserInfoById(postEntity.getWriterId())
       .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
@@ -138,10 +159,9 @@ public class PostService {
       postEntity.getTitle(),
       postEntity.getCategory(),
       postEntity.getContent(),
-      postEntity.getUpdatedAt() == null
-        ? postEntity.getCreatedAt()
-        : postEntity.getUpdatedAt(),
-      postEntity.getUpdatedAt() != null
+      postEntity.getCreatedAt(),
+      postEntity.getUpdatedAt(),
+      writer.getId().equals(userId)
     );
   }
 }

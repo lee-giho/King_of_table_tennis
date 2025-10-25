@@ -4,6 +4,7 @@ import com.giho.king_of_table_tennis.dto.PageResponse;
 import com.giho.king_of_table_tennis.dto.PostDTO;
 import com.giho.king_of_table_tennis.dto.RegisterPostRequestDTO;
 import com.giho.king_of_table_tennis.dto.UpdatePostRequestDTO;
+import com.giho.king_of_table_tennis.dto.enums.PostSortOption;
 import com.giho.king_of_table_tennis.entity.PostCategory;
 import com.giho.king_of_table_tennis.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,10 +72,11 @@ public class PostController {
   public ResponseEntity<PageResponse<PostDTO>> getPostList(
     @RequestParam(name = "page", defaultValue = "0") int page,
     @RequestParam(name = "size", defaultValue = "10") int size,
-    @RequestParam(name = "category", required = false) List<PostCategory> categories
-    ) {
+    @RequestParam(name = "category", required = false) List<PostCategory> categories,
+    @RequestParam(name = "sort", defaultValue = "CREATED_DESC") PostSortOption sort
+  ) {
 
-    PageResponse<PostDTO> pageResponse = postService.getPostList(page, size, categories);
+    PageResponse<PostDTO> pageResponse = postService.getPostList(page, size, categories, sort);
     return ResponseEntity.ok(pageResponse);
   }
 
