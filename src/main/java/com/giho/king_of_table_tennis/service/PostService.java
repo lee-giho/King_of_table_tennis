@@ -76,7 +76,7 @@ public class PostService {
     );
   }
 
-  public PageResponse<PostDTO> getPostList(int page, int size, List<PostCategory> categories, PostSortOption sortOption) {
+  public PageResponse<PostDTO> getPostList(int page, int size, List<PostCategory> categories, PostSortOption sortOption, String keyword) {
 
     // 카테고리가 비어 있으면 기본값으로 전체
     if (categories == null || categories.isEmpty()) {
@@ -93,7 +93,7 @@ public class PostService {
 
     Pageable pageable = PageRequest.of(page, size, sort);
 
-    Page<PostDTO> pageResponse = postRepository.findAllPostDTOByCategoryIn(categories, userId, pageable);
+    Page<PostDTO> pageResponse = postRepository.findAllPostDTOByCategoryInAndKeyword(categories, userId, keyword, pageable);
 
     return new PageResponse<>(
       pageResponse.getContent(),

@@ -73,10 +73,11 @@ public class PostController {
     @RequestParam(name = "page", defaultValue = "0") int page,
     @RequestParam(name = "size", defaultValue = "10") int size,
     @RequestParam(name = "category", required = false) List<PostCategory> categories,
-    @RequestParam(name = "sort", defaultValue = "CREATED_DESC") PostSortOption sort
+    @RequestParam(name = "sort", defaultValue = "CREATED_DESC") PostSortOption sort,
+    @RequestParam(name = "keyword", required = false) String keyword
   ) {
 
-    PageResponse<PostDTO> pageResponse = postService.getPostList(page, size, categories, sort);
+    PageResponse<PostDTO> pageResponse = postService.getPostList(page, size, categories, sort, keyword);
     return ResponseEntity.ok(pageResponse);
   }
 

@@ -27,7 +27,11 @@ public interface PostRepository extends JpaRepository<PostEntity, String> {
     WHERE p.writerId = :writerId
     ORDER BY p.createdAt DESC
   """)
-  Page<PostDTO> findAllByWriterId(@Param("writerId") String writerId, @Param("currentUserId") String currentUserId, Pageable pageable);
+  Page<PostDTO> findAllByWriterId(
+    @Param("writerId") String writerId,
+    @Param("currentUserId") String currentUserId,
+    Pageable pageable
+  );
 
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.PostDTO(
@@ -41,6 +45,17 @@ public interface PostRepository extends JpaRepository<PostEntity, String> {
     JOIN UserEntity u ON u.id = p.writerId
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
     WHERE p.category IN :categories
+      AND (
+        :keyword IS NULL
+        OR :keyword = ''
+        OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+      )
   """)
-  Page<PostDTO> findAllPostDTOByCategoryIn(@Param("categories") List<PostCategory> categories, @Param("currentUserId") String currentUserId, Pageable pageable);
+  Page<PostDTO> findAllPostDTOByCategoryInAndKeyword(
+    @Param("categories") List<PostCategory> categories,
+    @Param("currentUserId") String currentUserId,
+    @Param("keyword") String keyword,
+    Pageable pageable
+  );
 }
