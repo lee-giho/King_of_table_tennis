@@ -1,6 +1,7 @@
 package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.*;
+import com.giho.king_of_table_tennis.service.PostService;
 import com.giho.king_of_table_tennis.service.TokenService;
 import com.giho.king_of_table_tennis.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +24,8 @@ public class UserController {
   private final UserService userService;
 
   private final TokenService tokenService;
+
+  private final PostService postService;
 
   @Operation(summary = "nickName 중복 확인", description = "회원가입 시 사용하려는 nickName의 중복 여부를 확인하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
@@ -218,5 +221,44 @@ public class UserController {
   public ResponseEntity<UserInfo> getUserInfo(@PathVariable String userId) {
     UserInfo userInfo = userService.getUserInfo(userId);
     return ResponseEntity.ok(userInfo);
+  }
+
+  @Operation(summary = "내가 작성한 게시물 불러오기", description = "내가 작성한 게시물을 페이징을 통해 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "내가 작성한 게시물 리스트 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/me/posts")
+  public ResponseEntity<PageResponse<PostDTO>> getMyPost(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "10") int size
+  ) {
+
+    PageResponse<PostDTO> pageResponse = postService.getPostByUser(page, size, null);
+    return ResponseEntity.ok(pageResponse);
+  }
+
+  @Operation(summary = "특정 사용자가 작성한 게시물 불러오기", description = "특정 사용자가 작성한 게시물을 페이징을 통해 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "특정 사용자가 작성한 게시물 리스트 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/{userId}/posts")
+  public ResponseEntity<PageResponse<PostDTO>> getUserPost(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "10") int size,
+    @PathVariable String userId
+  ) {
+
+    PageResponse<PostDTO> pageResponse = postService.getPostByUser(page, size, userId);
+    return ResponseEntity.ok(pageResponse);
   }
 }
