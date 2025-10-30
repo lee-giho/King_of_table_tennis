@@ -1,12 +1,19 @@
 package com.giho.king_of_table_tennis.service;
 
+import com.giho.king_of_table_tennis.dto.CommentDTO;
+import com.giho.king_of_table_tennis.dto.PageResponse;
 import com.giho.king_of_table_tennis.dto.RegisterCommentRequestDTO;
+import com.giho.king_of_table_tennis.dto.enums.CommentSortOption;
 import com.giho.king_of_table_tennis.entity.CommentEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.CommentRepository;
 import com.giho.king_of_table_tennis.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -39,5 +46,27 @@ public class CommentService {
     commentEntity.setContent(registerCommentRequestDTO.getContent());
 
     commentRepository.save(commentEntity);
+  }
+
+  public PageResponse<CommentDTO> getCommentList(String postId, int page, int size, CommentSortOption sortOption) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    Sort sort = switch (sortOption) {
+      case CREATED_ASC -> Sort.by(Sort.Direction.ASC, "createdAt");
+      case CREATED_DESC -> Sort.by(Sort.Direction.DESC, "createdAt");
+    };
+
+    Pageable pageable = PageRequest.of(page, size, sort);
+
+    Page<CommentDTO> pageResponse = commentRepository.findAllCommentDTOByPostId(postId, userId, pageable);
+
+    return new PageResponse<>(
+      pageResponse.getContent(),
+      pageResponse.getTotalPages(),
+      pageResponse.getTotalElements(),
+      pageResponse.getNumber(),
+      pageResponse.getSize()
+    );
   }
 }
