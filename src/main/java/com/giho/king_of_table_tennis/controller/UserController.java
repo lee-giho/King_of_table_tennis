@@ -1,6 +1,9 @@
 package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.*;
+import com.giho.king_of_table_tennis.dto.enums.CommentSortOption;
+import com.giho.king_of_table_tennis.dto.enums.PostSortOption;
+import com.giho.king_of_table_tennis.service.CommentService;
 import com.giho.king_of_table_tennis.service.PostService;
 import com.giho.king_of_table_tennis.service.TokenService;
 import com.giho.king_of_table_tennis.service.UserService;
@@ -26,6 +29,8 @@ public class UserController {
   private final TokenService tokenService;
 
   private final PostService postService;
+
+  private final CommentService commentService;
 
   @Operation(summary = "nickName 중복 확인", description = "회원가입 시 사용하려는 nickName의 중복 여부를 확인하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
@@ -235,10 +240,11 @@ public class UserController {
   @GetMapping("/me/posts")
   public ResponseEntity<PageResponse<PostDTO>> getMyPost(
     @RequestParam(name = "page", defaultValue = "0") int page,
-    @RequestParam(name = "size", defaultValue = "10") int size
+    @RequestParam(name = "size", defaultValue = "10") int size,
+    @RequestParam(name = "sort", defaultValue = "CREATED_DESC") PostSortOption sort
   ) {
 
-    PageResponse<PostDTO> pageResponse = postService.getPostByUser(page, size, null);
+    PageResponse<PostDTO> pageResponse = postService.getPostByUser(null, page, size, sort);
     return ResponseEntity.ok(pageResponse);
   }
 
@@ -255,10 +261,31 @@ public class UserController {
   public ResponseEntity<PageResponse<PostDTO>> getUserPost(
     @RequestParam(name = "page", defaultValue = "0") int page,
     @RequestParam(name = "size", defaultValue = "10") int size,
+    @RequestParam(name = "sort", defaultValue = "CREATED_DESC") PostSortOption sort,
     @PathVariable String userId
   ) {
 
-    PageResponse<PostDTO> pageResponse = postService.getPostByUser(page, size, userId);
+    PageResponse<PostDTO> pageResponse = postService.getPostByUser(userId, page, size, sort);
+    return ResponseEntity.ok(pageResponse);
+  }
+
+  @Operation(summary = "내가 작성한 댓글 불러오기", description = "내가 작성한 댓글을 페이징을 통해 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "내가 작성한 댓글 리스트 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/me/comments")
+  public ResponseEntity<PageResponse<CommentDTO>> getMyComment(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "10") int size,
+    @RequestParam(name = "sort", defaultValue = "CREATED_DESC") CommentSortOption sort
+  ) {
+
+    PageResponse<CommentDTO> pageResponse = commentService.getCommentList(null, page, size, sort);
     return ResponseEntity.ok(pageResponse);
   }
 }

@@ -31,4 +31,25 @@ public interface CommentRepository extends JpaRepository<CommentEntity, String> 
     @Param("currentUserId") String currentUserId,
     Pageable pageable
   );
+
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.CommentDTO(
+      c.id,
+      c.postId,
+      u.id, u.name, u.nickName, u.email, u.profileImage,
+      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      c.content,
+      c.createdAt,
+      c.updatedAt,
+      CASE WHEN c.writerId = :currentUserId THEN true ELSE false END
+    )
+    FROM CommentEntity c
+    JOIN UserEntity u ON u.id = c.writerId
+    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    WHERE c.writerId = :currentUserId
+  """)
+  Page<CommentDTO> findAllCommentDTOByUserId(
+    @Param("currentUserId") String currentUserId,
+    Pageable pageable
+  );
 }

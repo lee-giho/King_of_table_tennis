@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,12 @@ public class CommentService {
 
     Pageable pageable = PageRequest.of(page, size, sort);
 
-    Page<CommentDTO> pageResponse = commentRepository.findAllCommentDTOByPostId(postId, userId, pageable);
+    Page<CommentDTO> pageResponse;
+    if (postId == null) {
+      pageResponse = commentRepository.findAllCommentDTOByUserId(userId, pageable);
+    } else {
+      pageResponse = commentRepository.findAllCommentDTOByPostId(postId, userId, pageable);
+    }
 
     return new PageResponse<>(
       pageResponse.getContent(),

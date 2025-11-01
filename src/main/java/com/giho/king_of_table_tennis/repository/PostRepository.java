@@ -25,7 +25,6 @@ public interface PostRepository extends JpaRepository<PostEntity, String> {
     JOIN UserEntity u ON u.id = p.writerId
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
     WHERE p.writerId = :writerId
-    ORDER BY p.createdAt DESC
   """)
   Page<PostDTO> findAllByWriterId(
     @Param("writerId") String writerId,
