@@ -49,7 +49,7 @@ public class CommentService {
     commentRepository.save(commentEntity);
   }
 
-  public PageResponse<CommentDTO> getCommentList(String postId, int page, int size, CommentSortOption sortOption) {
+  public PageResponse<CommentDTO> getCommentList(String postId, int page, int size, CommentSortOption sortOption, boolean showMyComment) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
@@ -61,7 +61,7 @@ public class CommentService {
     Pageable pageable = PageRequest.of(page, size, sort);
 
     Page<CommentDTO> pageResponse;
-    if (postId == null) {
+    if (showMyComment) {
       pageResponse = commentRepository.findAllCommentDTOByUserId(userId, pageable);
     } else {
       pageResponse = commentRepository.findAllCommentDTOByPostId(postId, userId, pageable);
@@ -74,5 +74,19 @@ public class CommentService {
       pageResponse.getNumber(),
       pageResponse.getSize()
     );
+  }
+
+  @Transactional
+  public void deleteComment(String commentId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    CommentEntity commentEntity = commentRepository.findById(commentId)
+      .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+    if (!commentEntity.getWriterId().equals(userId)) {
+      throw new CustomException(ErrorCode.COMMENT_DELETE_FORBIDDEN);
+    }
+    commentRepository.delete(commentEntity);
   }
 }

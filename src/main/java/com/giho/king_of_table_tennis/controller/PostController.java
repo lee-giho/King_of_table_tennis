@@ -139,9 +139,10 @@ public class PostController {
     @PathVariable String postId,
     @RequestParam(name = "page", defaultValue = "0") int page,
     @RequestParam(name = "size", defaultValue = "20") int size,
-    @RequestParam(name = "sort", defaultValue = "CREATED_DESC") CommentSortOption sort
+    @RequestParam(name = "sort", defaultValue = "CREATED_DESC") CommentSortOption sort,
+    @RequestParam(name = "showMyComment", defaultValue = "false") boolean showMyComment
   ) {
-    PageResponse<CommentDTO> pageResponse = commentService.getCommentList(postId, page, size, sort);
+    PageResponse<CommentDTO> pageResponse = commentService.getCommentList(postId, page, size, sort, showMyComment);
     return ResponseEntity.ok(pageResponse);
   }
 }

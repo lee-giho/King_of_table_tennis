@@ -285,7 +285,7 @@ public class UserController {
     @RequestParam(name = "sort", defaultValue = "CREATED_DESC") CommentSortOption sort
   ) {
 
-    PageResponse<CommentDTO> pageResponse = commentService.getCommentList(null, page, size, sort);
+    PageResponse<CommentDTO> pageResponse = commentService.getCommentList(null, page, size, sort, true);
     return ResponseEntity.ok(pageResponse);
   }
 }
