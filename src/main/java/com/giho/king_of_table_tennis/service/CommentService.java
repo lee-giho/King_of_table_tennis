@@ -3,6 +3,7 @@ package com.giho.king_of_table_tennis.service;
 import com.giho.king_of_table_tennis.dto.CommentDTO;
 import com.giho.king_of_table_tennis.dto.PageResponse;
 import com.giho.king_of_table_tennis.dto.RegisterCommentRequestDTO;
+import com.giho.king_of_table_tennis.dto.UpdateCommentRequestDTO;
 import com.giho.king_of_table_tennis.dto.enums.CommentSortOption;
 import com.giho.king_of_table_tennis.entity.CommentEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
@@ -88,5 +89,22 @@ public class CommentService {
       throw new CustomException(ErrorCode.COMMENT_DELETE_FORBIDDEN);
     }
     commentRepository.delete(commentEntity);
+  }
+
+  @Transactional
+  public void updateComment(String commentId, UpdateCommentRequestDTO updateCommentRequestDTO) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    CommentEntity commentEntity = commentRepository.findById(commentId)
+      .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+    if (!commentEntity.getWriterId().equals(userId)) {
+      throw new CustomException(ErrorCode.COMMENT_UPDATE_FORBIDDEN);
+    }
+
+    commentEntity.setContent(updateCommentRequestDTO.getContent());
+
+    commentRepository.save(commentEntity);
   }
 }

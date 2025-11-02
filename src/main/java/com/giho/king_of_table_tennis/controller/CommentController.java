@@ -1,5 +1,6 @@
 package com.giho.king_of_table_tennis.controller;
 
+import com.giho.king_of_table_tennis.dto.UpdateCommentRequestDTO;
 import com.giho.king_of_table_tennis.service.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,4 +32,18 @@ public class CommentController {
     return ResponseEntity.noContent().build();
   }
 
+  @Operation(summary = "댓글 수정", description = "자신이 작성했던 댓글 수정하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "댓글 수정 완료(본문 없음)"
+  )
+  @PatchMapping("/{commentId}")
+  public ResponseEntity<Void> patchComment(
+    @PathVariable String commentId,
+    @RequestBody UpdateCommentRequestDTO updateCommentRequestDTO
+  ) {
+
+    commentService.updateComment(commentId, updateCommentRequestDTO);
+    return ResponseEntity.noContent().build();
+  }
 }
