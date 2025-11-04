@@ -1,11 +1,10 @@
 package com.giho.king_of_table_tennis.controller;
 
-import com.giho.king_of_table_tennis.dto.PageResponse;
-import com.giho.king_of_table_tennis.dto.PostDTO;
-import com.giho.king_of_table_tennis.dto.RegisterPostRequestDTO;
-import com.giho.king_of_table_tennis.dto.UpdatePostRequestDTO;
+import com.giho.king_of_table_tennis.dto.*;
+import com.giho.king_of_table_tennis.dto.enums.CommentSortOption;
 import com.giho.king_of_table_tennis.dto.enums.PostSortOption;
 import com.giho.king_of_table_tennis.entity.PostCategory;
+import com.giho.king_of_table_tennis.service.CommentService;
 import com.giho.king_of_table_tennis.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,6 +26,8 @@ import java.util.List;
 public class PostController {
 
   private final PostService postService;
+
+  private final CommentService commentService;
 
   @Operation(summary = "게시글 작성", description = "작성한 게시글을 등록하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
@@ -108,5 +109,40 @@ public class PostController {
 
     postService.updatePost(postId, updatePostRequestDTO);
     return ResponseEntity.noContent().build();
+  }
+
+  @Operation(summary = "댓글 작성", description = "게시물에 작성한 댓글을 등록하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "201",
+    description = "댓글 작성 완료(본문 없음)"
+  )
+  @PostMapping("/{postId}/comment")
+  public ResponseEntity<Void> registerComment(
+    @RequestBody RegisterCommentRequestDTO registerCommentRequestDTO,
+    @PathVariable String postId
+  ) {
+    commentService.registerComment(postId, registerCommentRequestDTO);
+    return ResponseEntity.status(HttpStatus.CREATED).build();
+  }
+
+  @Operation(summary = "게시글에 작성된 댓글 조회", description = "게시글에 해당하는 댓글 목록을 페이징으로 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "댓글 목록 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/{postId}/comments")
+  public ResponseEntity<PageResponse<CommentDTO>> getComments(
+    @PathVariable String postId,
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "20") int size,
+    @RequestParam(name = "sort", defaultValue = "CREATED_DESC") CommentSortOption sort,
+    @RequestParam(name = "showMyComment", defaultValue = "false") boolean showMyComment
+  ) {
+    PageResponse<CommentDTO> pageResponse = commentService.getCommentList(postId, page, size, sort, showMyComment);
+    return ResponseEntity.ok(pageResponse);
   }
 }

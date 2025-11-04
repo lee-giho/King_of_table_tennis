@@ -54,7 +54,7 @@ public class PostService {
     postRepository.save(postEntity);
   }
 
-  public PageResponse<PostDTO> getPostByUser(int page, int size, String userId) {
+  public PageResponse<PostDTO> getPostByUser(String userId, int page, int size, PostSortOption sortOption) {
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String currentUserId = authentication.getName();
@@ -63,7 +63,12 @@ public class PostService {
       userId = currentUserId;
     }
 
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
+    Sort sort = switch (sortOption) {
+      case CREATED_ASC -> Sort.by(Sort.Direction.ASC, "createdAt");
+      case CREATED_DESC -> Sort.by(Sort.Direction.DESC, "createdAt");
+    };
+
+    Pageable pageable = PageRequest.of(page, size, sort);
 
     Page<PostDTO> myPost = postRepository.findAllByWriterId(userId, currentUserId, pageable);
 
