@@ -4,6 +4,8 @@ import com.giho.king_of_table_tennis.dto.GameUserInfo;
 import com.giho.king_of_table_tennis.dto.MySimpleInfoResponse;
 import com.giho.king_of_table_tennis.dto.UserInfo;
 import com.giho.king_of_table_tennis.entity.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -50,4 +52,22 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
     WHERE u.id = :id
   """)
   MySimpleInfoResponse findMySimpleInfoById(String id);
+
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
+      u.id, u.name, u.nickName, u.email, u.profileImage,
+      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount
+    )
+    FROM UserEntity u
+    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    WHERE u.id <> :currentUserId
+      AND (
+        :keyword IS NULL
+        OR :keyword = ''
+        OR LOWER(u.nickName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        OR LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))
+      )
+  """)
+  Page<UserInfo> searchUserInfoByKeyword(@Param("keyword") String keyword, @Param("currentUserId") String currentUserId, Pageable pageable);
 }

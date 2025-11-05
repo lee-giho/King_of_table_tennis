@@ -8,6 +8,10 @@ import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.UserRepository;
 import com.giho.king_of_table_tennis.repository.UserTableTennisInfoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -237,6 +241,24 @@ public class UserService {
       System.out.println(e);
       return new BooleanResponseDTO(false);
     }
+  }
+
+  public PageResponse<UserInfo> searchUsers(String keyword, int page, int size) {
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "nickName"));
+
+    Page<UserInfo> userInfoPage = userRepository.searchUserInfoByKeyword(keyword, userId, pageable);
+
+    return new PageResponse<>(
+      userInfoPage.getContent(),
+      userInfoPage.getTotalPages(),
+      userInfoPage.getTotalElements(),
+      userInfoPage.getNumber(),
+      userInfoPage.getSize()
+    );
   }
 
   public UserInfo getUserInfo(String userId) {

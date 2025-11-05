@@ -288,4 +288,24 @@ public class UserController {
     PageResponse<CommentDTO> pageResponse = commentService.getCommentList(null, page, size, sort, true);
     return ResponseEntity.ok(pageResponse);
   }
+
+  @Operation(summary = "검색어에 해당하는 사용자 조회", description = "검색어에 해당하는 사용자를 페이징을 통해 불러오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "검색어에 해당하는 사용자 리스트 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping()
+  public ResponseEntity<PageResponse<UserInfo>> searchUsers(
+    @RequestParam(name = "keyword", required = false) String keyword,
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "20") int size
+  ) {
+
+    PageResponse<UserInfo> pageResponse = userService.searchUsers(keyword, page, size);
+    return ResponseEntity.ok(pageResponse);
+  }
 }
