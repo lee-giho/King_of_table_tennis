@@ -1,5 +1,6 @@
 package com.giho.king_of_table_tennis.dto;
 
+import com.giho.king_of_table_tennis.entity.FriendStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,8 +16,11 @@ public class UserInfo {
   private String nickName;
   private String email;
   private String profileImage;
+
   private String racketType;
   private String userLevel;
   private int winCount;
   private int defeatCount;
+
+  private FriendStatus friendStatus;
 }

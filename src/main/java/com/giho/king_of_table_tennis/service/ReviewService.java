@@ -88,9 +88,9 @@ public class ReviewService {
 
     Page<Object[]> rawPage;
     if (Objects.equals(type, ReviewType.RECEIVED.toString())) {
-      rawPage = gameReviewRepository.findAllReceivedReviewDetails(userId, pageable);
+      rawPage = gameReviewRepository.findAllReceivedReviewDetails(userId, userId, pageable);
     } else {
-      rawPage = gameReviewRepository.findAllWrittenReviewDetails(userId, pageable);
+      rawPage = gameReviewRepository.findAllWrittenReviewDetails(userId, userId, pageable);
     }
 
     if (rawPage.isEmpty()) {
@@ -98,7 +98,7 @@ public class ReviewService {
     }
 
     List<String> placeIds = rawPage.getContent().stream()
-      .map(row -> ((GameInfoEntity) row[3]).getPlace())
+      .map(row -> ((GameInfoEntity) row[1]).getPlace())
       .distinct()
       .toList();
 
@@ -108,9 +108,14 @@ public class ReviewService {
 
     List<GameReviewDTO> content = rawPage.getContent().stream().map(row -> {
       GameReviewEntity gr = (GameReviewEntity) row[0];
-      UserEntity u = (UserEntity) row[1];
-      UserTableTennisInfoEntity tti = (UserTableTennisInfoEntity) row[2];
-      GameInfoEntity g = (GameInfoEntity) row[3];
+      GameInfoEntity g = (GameInfoEntity) row[1];
+      UserEntity u = (UserEntity) row[2];
+      UserTableTennisInfoEntity tti = (UserTableTennisInfoEntity) row[3];
+      FriendEntity f = (FriendEntity) row[4];
+
+      FriendStatus friendStatus = (f != null)
+        ? f.getStatus()
+        : FriendStatus.NOTHING;
 
       UserInfo userInfo = new UserInfo(
         u.getId(),
@@ -121,7 +126,8 @@ public class ReviewService {
         tti.getRacketType(),
         tti.getUserLevel(),
         tti.getWinCount(),
-        tti.getDefeatCount()
+        tti.getDefeatCount(),
+        friendStatus
       );
 
       String placeName = placeNameById.getOrDefault(g.getPlace(), g.getPlace());

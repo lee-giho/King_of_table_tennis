@@ -12,18 +12,17 @@ public interface CommentRepository extends JpaRepository<CommentEntity, String> 
 
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.CommentDTO(
-      c.id,
-      c.postId,
+      c.id, c.postId,
       u.id, u.name, u.nickName, u.email, u.profileImage,
       tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
-      c.content,
-      c.createdAt,
-      c.updatedAt,
+      f.status,
+      c.content, c.createdAt, c.updatedAt,
       CASE WHEN c.writerId = :currentUserId THEN true ELSE false END
     )
     FROM CommentEntity c
     JOIN UserEntity u ON u.id = c.writerId
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE c.postId = :postId
   """)
   Page<CommentDTO> findAllCommentDTOByPostId(
@@ -34,18 +33,17 @@ public interface CommentRepository extends JpaRepository<CommentEntity, String> 
 
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.CommentDTO(
-      c.id,
-      c.postId,
+      c.id, c.postId,
       u.id, u.name, u.nickName, u.email, u.profileImage,
       tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
-      c.content,
-      c.createdAt,
-      c.updatedAt,
+      f.status,
+      c.content, c.createdAt, c.updatedAt,
       CASE WHEN c.writerId = :currentUserId THEN true ELSE false END
     )
     FROM CommentEntity c
     JOIN UserEntity u ON u.id = c.writerId
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE c.writerId = :currentUserId
   """)
   Page<CommentDTO> findAllCommentDTOByUserId(

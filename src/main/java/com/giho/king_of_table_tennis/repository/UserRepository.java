@@ -24,42 +24,62 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
   Optional<UserEntity> findByIdAndNameAndEmail(String id, String name, String email);
 
   @Query("""
-    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(u.id, u.name, u.nickName, u.email, u.profileImage, tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount)
-    FROM UserEntity u JOIN UserTableTennisInfoEntity tti ON u.id = tti.userId
+    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
+      u.id, u.name, u.nickName, u.email, u.profileImage,
+      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      COALESCE(f.status, com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING)
+    )
+    FROM UserEntity u
+    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE u.id IN :userIds
   """)
-  List<UserInfo> findUserInfoByIds(@Param("userIds") List<String> userIds);
+  List<UserInfo> findUserInfoByIds(@Param("userIds") List<String> userIds, @Param("currentUserId") String currentUserId);
 
   @Query("""
-    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(u.id, u.name, u.nickName, u.email, u.profileImage, tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount)
-    FROM UserEntity u JOIN UserTableTennisInfoEntity tti ON u.id = tti.userId
+    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
+      u.id, u.name, u.nickName, u.email, u.profileImage,
+      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      COALESCE(f.status, com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING)
+    )
+    FROM UserEntity u
+    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE u.id = :id
   """)
-  Optional<UserInfo> findUserInfoById(String id);
+  Optional<UserInfo> findUserInfoById(@Param("id") String id, @Param("currentUserId") String currentUserId);
 
   List<UserEntity> findByIdIn(List<String> userIds);
 
   @Query("""
-    SELECT new com.giho.king_of_table_tennis.dto.GameUserInfo(u.id, u.nickName, u.profileImage, tti.racketType)
+    SELECT new com.giho.king_of_table_tennis.dto.GameUserInfo(
+    u.id, u.nickName, u.profileImage,
+    tti.racketType
+    )
     FROM UserEntity u JOIN UserTableTennisInfoEntity tti ON u.id = tti.userId
     WHERE u.id IN :userIds
   """)
   List<GameUserInfo> findGameUserInfoByIds(@Param("userIds") List<String> userIds);
 
   @Query("""
-    SELECT new com.giho.king_of_table_tennis.dto.MySimpleInfoResponse(u.nickName, u.profileImage, tti.racketType, tti.winCount, tti.defeatCount)
+    SELECT new com.giho.king_of_table_tennis.dto.MySimpleInfoResponse(
+      u.nickName, u.profileImage,
+      tti.racketType, tti.winCount, tti.defeatCount
+    )
     FROM UserEntity u JOIN UserTableTennisInfoEntity tti ON u.id = tti.userId
     WHERE u.id = :id
   """)
-  MySimpleInfoResponse findMySimpleInfoById(String id);
+  MySimpleInfoResponse findMySimpleInfoById(@Param("id") String id);
 
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
-      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount
+      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      COALESCE(f.status, com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING)
     )
     FROM UserEntity u
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE u.id <> :currentUserId
       AND (
         :keyword IS NULL

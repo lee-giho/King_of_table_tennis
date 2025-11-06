@@ -136,6 +136,8 @@ public class GameService {
   }
 
   public GameDetailInfo getGameDetailInfo(String gameInfoId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String currentUserId = authentication.getName();
 
     GameInfoEntity gameInfoEntity = gameInfoRepository.findById(gameInfoId)
       .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
@@ -149,7 +151,7 @@ public class GameService {
       userIds.add(gameStateEntity.getChallengerId());
     }
 
-    List<UserInfo> users = userRepository.findUserInfoByIds(userIds);
+    List<UserInfo> users = userRepository.findUserInfoByIds(userIds, currentUserId);
 
     Map<String, UserInfo> userMap = users.stream()
       .collect(Collectors.toMap(UserInfo::getId, user -> user));
@@ -164,7 +166,7 @@ public class GameService {
 
   public Page<GameDetailInfoByPage> getGameDetailInfoByPage(Pageable pageable, String place) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String userId = authentication.getName();
+    String currentUserId = authentication.getName();
 
     LocalDateTime now = LocalDateTime.now();
 
@@ -189,7 +191,7 @@ public class GameService {
         userIds.add(s.getChallengerId());
       }
     }
-    List<UserInfo> userInfoList = userRepository.findUserInfoByIds(new ArrayList<>(userIds));
+    List<UserInfo> userInfoList = userRepository.findUserInfoByIds(new ArrayList<>(userIds), currentUserId);
     Map<String, UserInfo> userById = userInfoList.stream()
       .collect(Collectors.toMap(UserInfo::getId, u -> u));
 
@@ -218,7 +220,7 @@ public class GameService {
         ? null
         : userById.get(gameState.getChallengerId());
 
-      boolean isMine = defender.getId().equals(userId);
+      boolean isMine = defender.getId().equals(currentUserId);
 
       gameDetailInfoList.add(new GameDetailInfoByPage(defender, challenger, cloneGameInfo, gameState, isMine));
     }
@@ -259,11 +261,15 @@ public class GameService {
         UserEntity c = (UserEntity) row[3];
         UserTableTennisInfoEntity dTti = (UserTableTennisInfoEntity) row[4];
         UserTableTennisInfoEntity cTti = (UserTableTennisInfoEntity) row[5];
-        long applicationCount = (long) row[6];
-        boolean hasReviewed = (Boolean) row[7];
+        FriendEntity dFriend = (FriendEntity) row[6];
+        FriendEntity cFriend = (FriendEntity) row[7];
+        long applicationCount = (long) row[8];
+        boolean hasReviewed = (Boolean) row[9];
 
-        UserInfo defenderInfo = toUserInfo(d, dTti);
-        UserInfo challengerInfo = (c != null) ? toUserInfo(c, cTti) : null;
+        UserInfo defenderInfo = toUserInfo(d, dTti, dFriend, userId);
+        UserInfo challengerInfo = (c != null)
+          ? toUserInfo(c, cTti, cFriend, userId)
+          : null;
 
         boolean isMine = d.getId().equals(userId);
 
@@ -300,7 +306,9 @@ public class GameService {
   }
 
   public Page<UserInfo> getApplicantInfo(Pageable pageable, String gameInfoId) {
-    Page<UserInfo> userInfoPage = gameApplicationRepository.findApplicantByGameInfoIdOrderByApplicationAtAsc(gameInfoId, pageable);
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+    Page<UserInfo> userInfoPage = gameApplicationRepository.findApplicantByGameInfoIdOrderByApplicationAtAsc(gameInfoId, userId, pageable);
     System.out.println(userInfoPage.getTotalElements());
     return userInfoPage;
   }
@@ -363,12 +371,20 @@ public class GameService {
     return g;
   }
 
-  private UserInfo toUserInfo(UserEntity u, UserTableTennisInfoEntity tti) {
+  private UserInfo toUserInfo(UserEntity u, UserTableTennisInfoEntity tti, FriendEntity friend, String currentUserId) {
     String racketType = (tti != null) ? tti.getRacketType() : null;
     String userLevel = (tti != null) ? tti.getUserLevel() : null;
 
-    int winCount = 0;
-    int defeatCount = 0;
+    int winCount = (tti != null)
+      ? tti.getWinCount()
+      : 0;
+    int defeatCount = (tti != null)
+      ? tti.getDefeatCount()
+      : 0;
+
+    FriendStatus friendStatus = (u.getId().equals(currentUserId) || friend == null)
+      ? null
+      : friend.getStatus();
 
     return new UserInfo(
       u.getId(),
@@ -379,7 +395,8 @@ public class GameService {
       racketType,
       userLevel,
       winCount,
-      defeatCount
+      defeatCount,
+      friendStatus
     );
   }
 }

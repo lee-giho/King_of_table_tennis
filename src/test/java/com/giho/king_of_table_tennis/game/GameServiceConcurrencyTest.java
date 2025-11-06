@@ -106,7 +106,7 @@ class GameServiceConcurrencyTest {
         try {
           GameParticipationRequestDTO dto = new GameParticipationRequestDTO();
           dto.setGameInfoId("test-game-id");
-          dto.setChallengerId("user-" + userId);
+//          dto.setChallengerId("user-" + userId);
           return gameService.gameParticipation(dto);
         } catch (Exception e) {
           System.out.println("참여 실패: " + e.getMessage());

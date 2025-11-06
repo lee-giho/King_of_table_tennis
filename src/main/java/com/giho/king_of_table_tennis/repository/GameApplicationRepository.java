@@ -14,14 +14,23 @@ public interface GameApplicationRepository extends JpaRepository<GameApplication
   Optional<GameApplicationEntity> findByGameInfoIdAndApplicantId(String gameInfoId, String applicantId);
 
   @Query("""
-    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(u.id, u.name, u.nickName, u.email, u.profileImage, tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount)
+    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
+      u.id, u.name, u.nickName, u.email, u.profileImage,
+      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      f.status
+    )
     FROM GameApplicationEntity ga
     JOIN UserEntity u ON u.id = ga.applicantId
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE ga.gameInfoId = :gameInfoId
     ORDER BY ga.applicationAt ASC
   """)
-  Page<UserInfo> findApplicantByGameInfoIdOrderByApplicationAtAsc(@Param("gameInfoId") String gameInfoId, Pageable pageable);
+  Page<UserInfo> findApplicantByGameInfoIdOrderByApplicationAtAsc(
+    @Param("gameInfoId") String gameInfoId,
+    @Param("currentUserId") String currentUserId,
+    Pageable pageable
+  );
 
   boolean existsByGameInfoIdAndApplicantId(String gameInfoId, String applicantId);
 

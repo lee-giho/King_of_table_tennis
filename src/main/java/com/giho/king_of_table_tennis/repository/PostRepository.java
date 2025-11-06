@@ -18,12 +18,14 @@ public interface PostRepository extends JpaRepository<PostEntity, String> {
       p.id,
       u.id, u.name, u.nickName, u.email, u.profileImage,
       tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      f.status,
       p.title, p.category, p.content, p.createdAt, p.updatedAt,
       CASE WHEN p.writerId = :currentUserId THEN true ELSE false END
     )
     FROM PostEntity p
     JOIN UserEntity u ON u.id = p.writerId
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE p.writerId = :writerId
   """)
   Page<PostDTO> findAllByWriterId(
@@ -37,12 +39,14 @@ public interface PostRepository extends JpaRepository<PostEntity, String> {
       p.id,
       u.id, u.name, u.nickName, u.email, u.profileImage,
       tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      f.status,
       p.title, p.category, p.content, p.createdAt, p.updatedAt,
       CASE WHEN p.writerId = :currentUserId THEN true ELSE false END
     )
     FROM PostEntity p
     JOIN UserEntity u ON u.id = p.writerId
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE p.category IN :categories
       AND (
         :keyword IS NULL

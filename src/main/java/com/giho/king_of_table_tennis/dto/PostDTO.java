@@ -1,5 +1,6 @@
 package com.giho.king_of_table_tennis.dto;
 
+import com.giho.king_of_table_tennis.entity.FriendStatus;
 import com.giho.king_of_table_tennis.entity.PostCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -40,6 +41,7 @@ public class PostDTO {
     String userLevel,
     Integer winCount,
     Integer defeatCount,
+    FriendStatus friendStatus,
     String title,
     PostCategory category,
     String content,
@@ -52,7 +54,8 @@ public class PostDTO {
       writerId, writerName, writerNickName, writerEmail, writerProfileImage,
       racketType, userLevel,
       winCount != null ? winCount : 0,
-      defeatCount != null ? defeatCount : 0
+      defeatCount != null ? defeatCount : 0,
+      friendStatus
     );
     this.title = title;
     this.category = category;

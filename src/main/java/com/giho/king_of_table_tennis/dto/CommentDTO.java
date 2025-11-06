@@ -1,5 +1,6 @@
 package com.giho.king_of_table_tennis.dto;
 
+import com.giho.king_of_table_tennis.entity.FriendStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,6 +39,7 @@ public class CommentDTO {
     String userLevel,
     Integer winCount,
     Integer defeatCount,
+    FriendStatus friendStatus,
     String content,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
@@ -49,7 +51,8 @@ public class CommentDTO {
       writerId, writerName, writerNickName, writerEmail, writerProfileImage,
       racketType, userLevel,
       winCount != null ? winCount : 0,
-      defeatCount != null ? defeatCount : 0
+      defeatCount != null ? defeatCount : 0,
+      friendStatus
     );
     this.content = content;
     this.createdAt = createdAt;

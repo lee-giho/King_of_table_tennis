@@ -155,7 +155,7 @@ public class PostService {
   }
 
   private PostDTO toPostDTO(PostEntity postEntity, String userId) {
-    UserInfo writer = userRepository.findUserInfoById(postEntity.getWriterId())
+    UserInfo writer = userRepository.findUserInfoById(postEntity.getWriterId(), userId)
       .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
     return new PostDTO(
