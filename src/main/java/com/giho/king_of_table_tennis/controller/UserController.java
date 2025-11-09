@@ -3,10 +3,8 @@ package com.giho.king_of_table_tennis.controller;
 import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.dto.enums.CommentSortOption;
 import com.giho.king_of_table_tennis.dto.enums.PostSortOption;
-import com.giho.king_of_table_tennis.service.CommentService;
-import com.giho.king_of_table_tennis.service.PostService;
-import com.giho.king_of_table_tennis.service.TokenService;
-import com.giho.king_of_table_tennis.service.UserService;
+import com.giho.king_of_table_tennis.entity.FriendStatus;
+import com.giho.king_of_table_tennis.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -31,6 +29,8 @@ public class UserController {
   private final PostService postService;
 
   private final CommentService commentService;
+
+  private final FriendService friendService;
 
   @Operation(summary = "nickName 중복 확인", description = "회원가입 시 사용하려는 nickName의 중복 여부를 확인하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
@@ -307,5 +307,42 @@ public class UserController {
 
     PageResponse<UserInfo> pageResponse = userService.searchUsers(keyword, page, size);
     return ResponseEntity.ok(pageResponse);
+  }
+
+  @Operation(summary = "받은 친구 요청 조회", description = "해당 사용자가 다른 사용자에게 받은 친구 요청(RECEIVED)을 조회하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "친구 요청을 보낸 사용자 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/me/friend-requests/received")
+  public ResponseEntity<PageResponse<UserInfo>> getReceivedFriendRequests(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "10") int size
+  ) {
+
+    PageResponse<UserInfo> pageResponse = friendService.getReceivedFriendRequests(page, size);
+    return ResponseEntity.ok(pageResponse);
+  }
+
+  @Operation(summary = "특정 상태의 친구 관계 수 조회", description = "해당 사용자가 다른 사용자와 맺은 친구 관계의 수를 조회하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "특정 상태의 친구 관계 수 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/me/friend-requests/count")
+  public ResponseEntity<CountResponseDTO> getFriendRequestCountByFriendStatus(
+    @RequestParam(name = "friendStatus") FriendStatus friendStatus
+  ) {
+
+    CountResponseDTO countResponseDTO = friendService.getFriendRequestCountByFriendStatus(friendStatus);
+    return ResponseEntity.ok(countResponseDTO);
   }
 }
