@@ -345,4 +345,22 @@ public class UserController {
     CountResponseDTO countResponseDTO = friendService.getFriendRequestCountByFriendStatus(friendStatus);
     return ResponseEntity.ok(countResponseDTO);
   }
+
+  @Operation(summary = "친구 목록 조회", description = "Friend의 status가 FRIEND(친구 상태)인 사용자의 정보 조회하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "친구 목록 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/me/friends")
+  public ResponseEntity<PageResponse<UserInfo>> getFriendList(
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "20") int size
+  ) {
+    PageResponse<UserInfo> pageResponse = friendService.getFriendList(page, size);
+    return ResponseEntity.ok(pageResponse);
+  }
 }

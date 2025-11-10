@@ -109,4 +109,21 @@ public class FriendService {
       friendRepository.delete(targetFriendInfo);
     }
   }
+
+  public PageResponse<UserInfo> getFriendList(int page, int size) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    Pageable pageable = PageRequest.of(page, size);
+
+    Page<UserInfo> myFriends = friendRepository.findMyFriends(userId, pageable);
+
+    return new PageResponse<>(
+      myFriends.getContent(),
+      myFriends.getTotalPages(),
+      myFriends.getTotalElements(),
+      myFriends.getNumber(),
+      myFriends.getSize()
+    );
+  }
 }

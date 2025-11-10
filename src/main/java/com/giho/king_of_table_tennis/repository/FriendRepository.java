@@ -45,4 +45,22 @@ public interface FriendRepository extends JpaRepository<FriendEntity, String> {
   );
 
   Optional<FriendEntity> findFriendEntityByUserIdAndFriendId(String userId, String friendId);
+
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
+      u.id, u.name, u.nickName, u.email, u.profileImage,
+      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      f.status
+    )
+    FROM FriendEntity f
+    JOIN UserEntity u ON u.id = f.friendId
+    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    WHERE f.userId = :userId
+      AND f.status = com.giho.king_of_table_tennis.entity.FriendStatus.FRIEND
+    ORDER BY u.nickName ASC
+  """)
+  Page<UserInfo> findMyFriends(
+    String userId,
+    Pageable pageable
+  );
 }
