@@ -1,9 +1,7 @@
 package com.giho.king_of_table_tennis.service;
 
-import com.giho.king_of_table_tennis.dto.CountResponseDTO;
-import com.giho.king_of_table_tennis.dto.FriendRequestDTO;
-import com.giho.king_of_table_tennis.dto.PageResponse;
-import com.giho.king_of_table_tennis.dto.UserInfo;
+import com.giho.king_of_table_tennis.dto.*;
+import com.giho.king_of_table_tennis.dto.enums.FriendRequestAnswerType;
 import com.giho.king_of_table_tennis.entity.FriendEntity;
 import com.giho.king_of_table_tennis.entity.FriendStatus;
 import com.giho.king_of_table_tennis.exception.CustomException;
@@ -83,5 +81,32 @@ public class FriendService {
     CountResponseDTO countResponseDTO = friendRepository.countReceivedFriendRequests(userId, friendStatus);
 
     return countResponseDTO;
+  }
+
+  @Transactional
+  public void responseFriendRequest(String targetUserId, FriendRequestAnswerDTO friendRequestAnswerDTO) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    FriendEntity myFriendInfo = friendRepository.findFriendEntityByUserIdAndFriendId(userId, targetUserId)
+      .orElseThrow(() -> new CustomException(ErrorCode.FRIEND_NOT_FOUND));
+
+    if (myFriendInfo.getStatus() != FriendStatus.RECEIVED) {
+      throw new CustomException(ErrorCode.FRIEND_UPDATE_FORBIDDEN);
+    }
+
+    FriendEntity targetFriendInfo = friendRepository.findFriendEntityByUserIdAndFriendId(targetUserId, userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.FRIEND_NOT_FOUND));
+
+    if (friendRequestAnswerDTO.getAnswer() == FriendRequestAnswerType.ACCEPT) {
+      myFriendInfo.setStatus(FriendStatus.FRIEND);
+      targetFriendInfo.setStatus(FriendStatus.FRIEND);
+
+      friendRepository.save(myFriendInfo);
+      friendRepository.save(targetFriendInfo);
+    } else {
+      friendRepository.delete(myFriendInfo);
+      friendRepository.delete(targetFriendInfo);
+    }
   }
 }

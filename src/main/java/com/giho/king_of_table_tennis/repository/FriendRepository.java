@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface FriendRepository extends JpaRepository<FriendEntity, String> {
 
   @Query("""
@@ -19,7 +21,7 @@ public interface FriendRepository extends JpaRepository<FriendEntity, String> {
       f.status
     )
     FROM FriendEntity f
-    JOIN UserEntity u ON u.id = f.userId
+    JOIN UserEntity u ON u.id = f.friendId
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
     WHERE f.userId = :userId
       AND f.status = com.giho.king_of_table_tennis.entity.FriendStatus.RECEIVED
@@ -41,4 +43,6 @@ public interface FriendRepository extends JpaRepository<FriendEntity, String> {
     @Param("userId") String userId,
     @Param("friendStatus") FriendStatus friendStatus
   );
+
+  Optional<FriendEntity> findFriendEntityByUserIdAndFriendId(String userId, String friendId);
 }
