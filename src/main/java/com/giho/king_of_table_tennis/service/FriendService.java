@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -125,5 +126,19 @@ public class FriendService {
       myFriends.getNumber(),
       myFriends.getSize()
     );
+  }
+
+  @Transactional
+  public void deleteFriend(String targetUserId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    boolean exists = friendRepository.existsMutualFriendRelation(userId, targetUserId);
+
+    if (!exists) {
+      throw new CustomException(ErrorCode.STATUS_NOT_FRIEND);
+    }
+
+    friendRepository.deleteBothRelations(userId, targetUserId);
   }
 }

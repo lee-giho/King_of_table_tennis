@@ -7,6 +7,7 @@ import com.giho.king_of_table_tennis.entity.FriendStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -60,7 +61,33 @@ public interface FriendRepository extends JpaRepository<FriendEntity, String> {
     ORDER BY u.nickName ASC
   """)
   Page<UserInfo> findMyFriends(
-    String userId,
+    @Param("userId") String userId,
     Pageable pageable
+  );
+
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query("""
+    DELETE FROM FriendEntity f
+    WHERE (f.userId = :userId AND f.friendId = :targetUserId)
+      OR (f.userId = :targetUserId AND f.friendId = :userId)
+  """)
+  void deleteBothRelations(
+    @Param("userId") String userId,
+    @Param("targetUserId") String targetUserId
+  );
+
+  @Query("""
+    SELECT COUNT(f) > 0
+    FROM FriendEntity  f
+    WHERE (
+        (f.userId = :userId AND f.friendId = :targetUserId)
+        OR
+        (f.userId = :targetUserId AND f.friendId = :userId)
+      )
+      AND f.status = com.giho.king_of_table_tennis.entity.FriendStatus.FRIEND
+  """)
+  boolean existsMutualFriendRelation(
+    @Param("userId") String userId,
+    @Param("targetUserId") String targetUserId
   );
 }

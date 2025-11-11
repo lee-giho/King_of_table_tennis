@@ -14,6 +14,7 @@ public enum ErrorCode {
 
   FRIEND_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 친구 관계를 찾을 수 없습니다."),
   FRIEND_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 친구 관계를 수정할 권한이 없습니다."),
+  STATUS_NOT_FRIEND(HttpStatus.CONFLICT, "두 사용자는 서로 친구 관계가 아닙니다."),
 
   // 탁구 정보
   TABLE_TENNIS_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자에 대한 탁구 정보를 찾을 수 없습니다."),

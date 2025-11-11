@@ -46,4 +46,17 @@ public class FriendController {
     friendService.responseFriendRequest(targetId, friendRequestAnswerDTO);
     return ResponseEntity.noContent().build();
   }
+
+  @Operation(summary = "친구 삭제", description = "서로 친구 상태인 사용자와의 관계를 삭제하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "친구 삭제 완료(본문 없음)"
+  )
+  @DeleteMapping("/{targetId}")
+  public ResponseEntity<Void> deleteFriend(
+    @PathVariable(name = "targetId") String targetId
+  ) {
+    friendService.deleteFriend(targetId);
+    return ResponseEntity.noContent().build();
+  }
 }
