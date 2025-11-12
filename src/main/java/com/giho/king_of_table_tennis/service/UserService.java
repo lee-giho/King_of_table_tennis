@@ -243,14 +243,14 @@ public class UserService {
     }
   }
 
-  public PageResponse<UserInfo> searchUsers(String keyword, int page, int size) {
+  public PageResponse<UserInfo> searchUsers(String keyword, boolean onlyFriend, int page, int size) {
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "nickName"));
+    Pageable pageable = PageRequest.of(page, size);
 
-    Page<UserInfo> userInfoPage = userRepository.searchUserInfoByKeyword(keyword, userId, pageable);
+    Page<UserInfo> userInfoPage = userRepository.searchUserInfoByKeyword(keyword, onlyFriend, userId, pageable);
 
     return new PageResponse<>(
       userInfoPage.getContent(),

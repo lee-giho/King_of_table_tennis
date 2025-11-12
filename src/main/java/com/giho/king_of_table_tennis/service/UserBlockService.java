@@ -39,4 +39,15 @@ public class UserBlockService {
     userBlockEntity.setBlockedId(blockUserRequest.getTargetUserId());
     userBlockRepository.save(userBlockEntity);
   }
+
+  @Transactional
+  public void unBlockUser(String targetUserId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserBlockEntity userBlockEntity = userBlockRepository.findByBlockerIdAndBlockedId(userId, targetUserId)
+      .orElseThrow(() -> new CustomException(ErrorCode.BLOCK_NOT_FOUND));
+
+    userBlockRepository.delete(userBlockEntity);
+  }
 }

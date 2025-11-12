@@ -32,8 +32,6 @@ public class UserController {
 
   private final FriendService friendService;
 
-  private final UserBlockService userBlockService;
-
   @Operation(summary = "nickName 중복 확인", description = "회원가입 시 사용하려는 nickName의 중복 여부를 확인하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
@@ -303,11 +301,12 @@ public class UserController {
   @GetMapping()
   public ResponseEntity<PageResponse<UserInfo>> searchUsers(
     @RequestParam(name = "keyword", required = false) String keyword,
+    @RequestParam(name = "onlyFriend", defaultValue = "true") boolean onlyFriend,
     @RequestParam(name = "page", defaultValue = "0") int page,
     @RequestParam(name = "size", defaultValue = "20") int size
   ) {
 
-    PageResponse<UserInfo> pageResponse = userService.searchUsers(keyword, page, size);
+    PageResponse<UserInfo> pageResponse = userService.searchUsers(keyword, onlyFriend, page, size);
     return ResponseEntity.ok(pageResponse);
   }
 
@@ -381,18 +380,5 @@ public class UserController {
   ) {
     PageResponse<UserInfo> pageResponse = friendService.getFriendList(page, size, isBlocked);
     return ResponseEntity.ok(pageResponse);
-  }
-
-  @Operation(summary = "사용자 차단", description = "다른 사용자를 차단하는 API", security = @SecurityRequirement(name = "JWT"))
-  @ApiResponse(
-    responseCode = "204",
-    description = "사용자 차단"
-  )
-  @PostMapping("/blocks")
-  public ResponseEntity<Void> blockUser(
-    @RequestBody BlockUserRequest blockUserRequest
-  ) {
-    userBlockService.blockUser(blockUserRequest);
-    return ResponseEntity.noContent().build();
   }
 }

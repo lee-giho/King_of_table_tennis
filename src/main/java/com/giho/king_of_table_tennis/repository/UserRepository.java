@@ -27,11 +27,16 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
       tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
-      COALESCE(f.status, com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING)
+      CASE
+        WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
+        WHEN f.status IS NOT NULL THEN f.status
+        ELSE com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING
+      END
     )
     FROM UserEntity u
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
     LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
+    LEFT JOIN UserBlockEntity ub ON ub.blockerId = :currentUserId AND ub.blockedId = u.id
     WHERE u.id IN :userIds
   """)
   List<UserInfo> findUserInfoByIds(@Param("userIds") List<String> userIds, @Param("currentUserId") String currentUserId);
@@ -40,11 +45,16 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
       tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
-      COALESCE(f.status, com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING)
+      CASE
+        WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
+        WHEN f.status IS NOT NULL THEN f.status
+        ELSE com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING
+      END
     )
     FROM UserEntity u
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
     LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
+    LEFT JOIN UserBlockEntity ub ON ub.blockerId = :currentUserId AND ub.blockedId = u.id
     WHERE u.id = :id
   """)
   Optional<UserInfo> findUserInfoById(@Param("id") String id, @Param("currentUserId") String currentUserId);
@@ -75,11 +85,16 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
       tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
-      COALESCE(f.status, com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING)
+      CASE
+        WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
+        WHEN f.status IS NOT NULL THEN f.status
+        ELSE com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING
+      END
     )
     FROM UserEntity u
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
     LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
+    LEFT JOIN UserBlockEntity ub ON ub.blockerId = :currentUserId AND ub.blockedId = u.id
     WHERE u.id <> :currentUserId
       AND (
         :keyword IS NULL
@@ -88,6 +103,19 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
         OR LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
         OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))
       )
+      AND (:onlyFriend = false OR f.status = com.giho.king_of_table_tennis.entity.FriendStatus.FRIEND)
+      AND NOT EXISTS (
+        SELECT 1
+        FROM UserBlockEntity ub2
+        WHERE ub2.blockerId = u.id
+          AND ub2.blockedId = :currentUserId
+      )
+    ORDER BY u.nickName ASC
   """)
-  Page<UserInfo> searchUserInfoByKeyword(@Param("keyword") String keyword, @Param("currentUserId") String currentUserId, Pageable pageable);
+  Page<UserInfo> searchUserInfoByKeyword(
+    @Param("keyword") String keyword,
+    @Param("onlyFriend") boolean onlyFriend,
+    @Param("currentUserId") String currentUserId,
+    Pageable pageable
+  );
 }

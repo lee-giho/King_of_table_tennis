@@ -1,8 +1,10 @@
 package com.giho.king_of_table_tennis.controller;
 
+import com.giho.king_of_table_tennis.dto.BlockUserRequest;
 import com.giho.king_of_table_tennis.dto.FriendRequestAnswerDTO;
 import com.giho.king_of_table_tennis.dto.FriendRequestDTO;
 import com.giho.king_of_table_tennis.service.FriendService;
+import com.giho.king_of_table_tennis.service.UserBlockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 public class FriendController {
 
   private final FriendService friendService;
+
+  private final UserBlockService userBlockService;
 
   @Operation(summary = "친구 요청", description = "다른 사용자에게 친구 요청을 보내는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
@@ -57,6 +61,32 @@ public class FriendController {
     @PathVariable(name = "targetId") String targetId
   ) {
     friendService.deleteFriend(targetId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Operation(summary = "사용자 차단", description = "다른 사용자를 차단하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "사용자 차단"
+  )
+  @PostMapping("/blocks")
+  public ResponseEntity<Void> blockUser(
+    @RequestBody BlockUserRequest blockUserRequest
+  ) {
+    userBlockService.blockUser(blockUserRequest);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Operation(summary = "사용자 차단 해제", description = "다른 사용자 차단을 해제하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "사용자 차단 해제"
+  )
+  @DeleteMapping("/blocks/{targetUserId}")
+  public ResponseEntity<Void> unBlockUser(
+    @PathVariable(name = "targetUserId") String targetUserId
+  ) {
+    userBlockService.unBlockUser(targetUserId);
     return ResponseEntity.noContent().build();
   }
 }
