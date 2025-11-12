@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,6 +85,15 @@ public class FriendService {
     return countResponseDTO;
   }
 
+  public CountResponseDTO getBlockedFriendCount() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    CountResponseDTO countResponseDTO = friendRepository.countBlockedFriend(userId);
+
+    return countResponseDTO;
+  }
+
   @Transactional
   public void responseFriendRequest(String targetUserId, FriendRequestAnswerDTO friendRequestAnswerDTO) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -111,13 +121,19 @@ public class FriendService {
     }
   }
 
-  public PageResponse<UserInfo> getFriendList(int page, int size) {
+  public PageResponse<UserInfo> getFriendList(int page, int size, boolean isBlocked) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
     Pageable pageable = PageRequest.of(page, size);
 
-    Page<UserInfo> myFriends = friendRepository.findMyFriends(userId, pageable);
+    Page<UserInfo> myFriends;
+
+    if (isBlocked) {
+      myFriends = friendRepository.findMyBlockedFriends(userId, pageable);
+    } else {
+      myFriends = friendRepository.findMyFriends(userId, pageable);
+    }
 
     return new PageResponse<>(
       myFriends.getContent(),

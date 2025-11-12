@@ -32,6 +32,8 @@ public class UserController {
 
   private final FriendService friendService;
 
+  private final UserBlockService userBlockService;
+
   @Operation(summary = "nickName 중복 확인", description = "회원가입 시 사용하려는 nickName의 중복 여부를 확인하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
@@ -334,7 +336,7 @@ public class UserController {
     description = "특정 상태의 친구 관계 수 반환",
     content = @Content(
       mediaType = "application/json",
-      schema = @Schema(implementation = PageResponse.class)
+      schema = @Schema(implementation = CountResponseDTO.class)
     )
   )
   @GetMapping("/me/friend-requests/count")
@@ -346,7 +348,23 @@ public class UserController {
     return ResponseEntity.ok(countResponseDTO);
   }
 
-  @Operation(summary = "친구 목록 조회", description = "Friend의 status가 FRIEND(친구 상태)인 사용자의 정보 조회하는 API", security = @SecurityRequirement(name = "JWT"))
+  @Operation(summary = "차단한 친구 수 조회", description = "해당 사용자가 차단한 다른 친구의 수를 조회하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "차단한 친구 수 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = CountResponseDTO.class)
+    )
+  )
+  @GetMapping("/me/friends/blocked/count")
+  public ResponseEntity<CountResponseDTO> getBlockedFriendCount() {
+
+    CountResponseDTO countResponseDTO = friendService.getBlockedFriendCount();
+    return ResponseEntity.ok(countResponseDTO);
+  }
+
+  @Operation(summary = "친구 목록 조회", description = "Friend의 status가 FRIEND(친구 상태)인 사용자의 정보 조회하는 API, isBlocked 값을 통해 차단하지 않거나 차단한 친구 조회", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
     description = "친구 목록 반환",
@@ -358,9 +376,23 @@ public class UserController {
   @GetMapping("/me/friends")
   public ResponseEntity<PageResponse<UserInfo>> getFriendList(
     @RequestParam(name = "page", defaultValue = "0") int page,
-    @RequestParam(name = "size", defaultValue = "20") int size
+    @RequestParam(name = "size", defaultValue = "20") int size,
+    @RequestParam(name = "isBlocked", defaultValue = "false") boolean isBlocked
   ) {
-    PageResponse<UserInfo> pageResponse = friendService.getFriendList(page, size);
+    PageResponse<UserInfo> pageResponse = friendService.getFriendList(page, size, isBlocked);
     return ResponseEntity.ok(pageResponse);
+  }
+
+  @Operation(summary = "사용자 차단", description = "다른 사용자를 차단하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "사용자 차단"
+  )
+  @PostMapping("/blocks")
+  public ResponseEntity<Void> blockUser(
+    @RequestBody BlockUserRequest blockUserRequest
+  ) {
+    userBlockService.blockUser(blockUserRequest);
+    return ResponseEntity.noContent().build();
   }
 }

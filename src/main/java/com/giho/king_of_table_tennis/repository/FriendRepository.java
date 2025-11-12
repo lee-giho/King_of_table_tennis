@@ -45,6 +45,24 @@ public interface FriendRepository extends JpaRepository<FriendEntity, String> {
     @Param("friendStatus") FriendStatus friendStatus
   );
 
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.CountResponseDTO(
+      COUNT(f)
+    )
+    FROM FriendEntity f
+    WHERE f.userId = :userId
+      AND f.status = com.giho.king_of_table_tennis.entity.FriendStatus.FRIEND
+      AND EXISTS (
+        SELECT 1
+        FROM UserBlockEntity ub
+        WHERE ub.blockerId = :userId
+          AND ub.blockedId = f.friendId
+      )
+  """)
+  CountResponseDTO countBlockedFriend(
+    @Param("userId") String userId
+  );
+
   Optional<FriendEntity> findFriendEntityByUserIdAndFriendId(String userId, String friendId);
 
   @Query("""
@@ -58,9 +76,44 @@ public interface FriendRepository extends JpaRepository<FriendEntity, String> {
     LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
     WHERE f.userId = :userId
       AND f.status = com.giho.king_of_table_tennis.entity.FriendStatus.FRIEND
+      AND NOT EXISTS (
+        SELECT 1
+        FROM UserBlockEntity ub1
+        WHERE ub1.blockerId = :userId
+          AND ub1.blockedId = u.id
+      )
+      AND NOT EXISTS (
+        SELECT 1
+        FROM UserBlockEntity ub2
+        WHERE ub2.blockerId = u.id
+          AND ub2.blockedId = :userId
+      )
     ORDER BY u.nickName ASC
   """)
   Page<UserInfo> findMyFriends(
+    @Param("userId") String userId,
+    Pageable pageable
+  );
+
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
+      u.id, u.name, u.nickName, u.email, u.profileImage,
+      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      f.status
+    )
+    FROM FriendEntity f
+      JOIN UserEntity u ON u.id = f.friendId
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+    WHERE f.userId = :userId
+      AND EXISTS (
+        SELECT 1
+        FROM UserBlockEntity ub
+        WHERE ub.blockerId = :userId
+          AND ub.blockedId = u.id
+      )
+    ORDER BY u.nickName ASC
+  """)
+  Page<UserInfo> findMyBlockedFriends(
     @Param("userId") String userId,
     Pageable pageable
   );
