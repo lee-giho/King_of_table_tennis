@@ -21,6 +21,10 @@ public enum ErrorCode {
   SELF_BLOCK_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신은 차단할 수 없습니다."),
   BLOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "차단 관계를 찾을 수 없습니다."),
 
+  // 채팅방
+  SELF_CHAT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신에게는 채팅방을 만들 수 없습니다."),
+  CHAT_BLOCKED_RELATION(HttpStatus.BAD_REQUEST, "차단 관계인 친구이므로 채팅방을 만들 수 없습니다."),
+
   // 탁구 정보
   TABLE_TENNIS_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자에 대한 탁구 정보를 찾을 수 없습니다."),
   TABLE_TENNIS_INFO_ALREADY_EXIST(HttpStatus.CONFLICT, "해당 사용자에 대한 탁구 정보가 이미 존재합니다."),
