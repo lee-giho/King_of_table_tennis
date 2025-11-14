@@ -8,6 +8,10 @@ import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.UserRepository;
 import com.giho.king_of_table_tennis.repository.UserTableTennisInfoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -97,7 +101,7 @@ public class UserService {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String userId = authentication.getName();
 
-    UserInfo userInfo = userRepository.findUserInfoById(userId)
+    UserInfo userInfo = userRepository.findUserInfoById(userId, userId)
       .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
     return userInfo;
@@ -239,8 +243,29 @@ public class UserService {
     }
   }
 
+  public PageResponse<UserInfo> searchUsers(String keyword, boolean onlyFriend, int page, int size) {
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    Pageable pageable = PageRequest.of(page, size);
+
+    Page<UserInfo> userInfoPage = userRepository.searchUserInfoByKeyword(keyword, onlyFriend, userId, pageable);
+
+    return new PageResponse<>(
+      userInfoPage.getContent(),
+      userInfoPage.getTotalPages(),
+      userInfoPage.getTotalElements(),
+      userInfoPage.getNumber(),
+      userInfoPage.getSize()
+    );
+  }
+
   public UserInfo getUserInfo(String userId) {
-    UserInfo userInfo = userRepository.findUserInfoById(userId)
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String currentUserId = authentication.getName();
+
+    UserInfo userInfo = userRepository.findUserInfoById(userId, currentUserId)
       .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     return userInfo;
   }

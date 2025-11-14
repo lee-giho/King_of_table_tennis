@@ -60,7 +60,7 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
   Page<GameInfoEntity> findByPlaceAndGameDateAfterOrderByGameDateAsc(String place, LocalDateTime now, Pageable pageable);
 
   @Query("""
-    SELECT g, s, d, c, dTti, cTti,
+    SELECT g, s, d, c, dTti, cTti, dFriend, cFriend,
       ( SELECT COUNT(ga)
         FROM GameApplicationEntity ga
         WHERE ga.gameInfoId = g.id
@@ -77,7 +77,9 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
     JOIN UserEntity d ON d.id = s.defenderId
     LEFT JOIN UserEntity c ON c.id = s.challengerId
     LEFT JOIN UserTableTennisInfoEntity dTti ON dTti.userId = d.id
-    LEFT JOIN UserTableTennisInfoEntity cTti ON cTti.userId = c.id 
+    LEFT JOIN UserTableTennisInfoEntity cTti ON cTti.userId = c.id
+    LEFT JOIN FriendEntity dFriend ON dFriend.userId = :userId AND dFriend.friendId = d.id
+    LEFT JOIN FriendEntity cFriend ON cFriend.userId = :userId AND cFriend.friendId = c.id
     WHERE (s.defenderId = :userId OR s.challengerId = :userId)
       AND s.state IN :gameStates
     ORDER BY g.gameDate ASC
