@@ -36,5 +36,5 @@ public class ChatRoomEntity {
   private String lastMessage;
 
   @Column(name = "last_sent_at")
-  private String lastSentAt;
+  private LocalDateTime lastSentAt;
 }

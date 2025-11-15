@@ -1,7 +1,9 @@
 package com.giho.king_of_table_tennis.service;
 
+import com.giho.king_of_table_tennis.dto.PreChatRoom;
 import com.giho.king_of_table_tennis.dto.CreateChatRoomRequest;
 import com.giho.king_of_table_tennis.dto.CreateChatRoomResponse;
+import com.giho.king_of_table_tennis.dto.PageResponse;
 import com.giho.king_of_table_tennis.entity.ChatRoomEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
@@ -9,6 +11,9 @@ import com.giho.king_of_table_tennis.repository.ChatRoomRepository;
 import com.giho.king_of_table_tennis.repository.FriendRepository;
 import com.giho.king_of_table_tennis.repository.UserBlockRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -61,5 +66,22 @@ public class ChatRoomService {
 
         return new CreateChatRoomResponse(savedChatRoomEntity.getId());
       });
+  }
+
+  public PageResponse<PreChatRoom> getMyChatRooms(int page, int size) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    Pageable pageable = PageRequest.of(page, size);
+
+    Page<PreChatRoom> chatRoomPage = chatRoomRepository.findMyPreChatRooms(userId, pageable);
+
+    return new PageResponse<>(
+      chatRoomPage.getContent(),
+      chatRoomPage.getTotalPages(),
+      chatRoomPage.getTotalElements(),
+      chatRoomPage.getNumber(),
+      chatRoomPage.getSize()
+    );
   }
 }
