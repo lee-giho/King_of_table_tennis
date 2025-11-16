@@ -22,6 +22,8 @@ public enum ErrorCode {
   BLOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "차단 관계를 찾을 수 없습니다."),
 
   // 채팅방
+  CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 채팅방을 찾을 수 없습니다."),
+  CHAT_ROOM_ACCESS_DENIED(HttpStatus.BAD_REQUEST, "해당 채팅방에 참여하지 않아 접근할 수 없습니다."),
   SELF_CHAT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신에게는 채팅방을 만들 수 없습니다."),
   CHAT_BLOCKED_RELATION(HttpStatus.BAD_REQUEST, "차단 관계인 친구이므로 채팅방을 만들 수 없습니다."),
 

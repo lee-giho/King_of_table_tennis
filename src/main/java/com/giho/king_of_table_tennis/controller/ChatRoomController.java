@@ -1,9 +1,6 @@
 package com.giho.king_of_table_tennis.controller;
 
-import com.giho.king_of_table_tennis.dto.PreChatRoom;
-import com.giho.king_of_table_tennis.dto.CreateChatRoomRequest;
-import com.giho.king_of_table_tennis.dto.CreateChatRoomResponse;
-import com.giho.king_of_table_tennis.dto.PageResponse;
+import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.service.ChatRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -56,5 +53,22 @@ public class ChatRoomController {
   ) {
     PageResponse<PreChatRoom> pageResponse = chatRoomService.getMyChatRooms(page, size);
     return ResponseEntity.ok(pageResponse);
+  }
+
+  @Operation(summary = "채팅방에 속한 사용자 정보 조회", description = "해당 채팅방에 참여하고 있는 사용자들의 정보를 조회하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "채팅방에 속한 사용자 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = ChatRoomUsersInfo.class)
+    )
+  )
+  @GetMapping("/{chatRoomId}/users")
+  public ResponseEntity<ChatRoomUsersInfo> getChatRoomUsersInfo(
+    @PathVariable(name = "chatRoomId") String chatRoomId
+  ) {
+    ChatRoomUsersInfo chatRoomUsersInfo = chatRoomService.getChatRoomUsersInfo(chatRoomId);
+    return ResponseEntity.ok(chatRoomUsersInfo);
   }
 }
