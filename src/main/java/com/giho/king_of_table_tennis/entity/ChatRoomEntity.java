@@ -3,6 +3,7 @@ package com.giho.king_of_table_tennis.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,7 @@ public class ChatRoomEntity {
   @Column(name = "participant_id", nullable = false)
   private String participantId;
 
+  @CreationTimestamp
   @Column(name = "created_at", updatable = false, insertable = false)
   private LocalDateTime createdAt;
 
@@ -37,4 +39,9 @@ public class ChatRoomEntity {
 
   @Column(name = "last_sent_at")
   private LocalDateTime lastSentAt;
+
+  public void updateLastmessage(String message, LocalDateTime sentAt) {
+    this.lastMessage = message;
+    this.lastSentAt = sentAt;
+  }
 }
