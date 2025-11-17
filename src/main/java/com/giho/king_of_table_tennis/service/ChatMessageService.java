@@ -1,6 +1,7 @@
 package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.ChatMessage;
+import com.giho.king_of_table_tennis.dto.PageResponse;
 import com.giho.king_of_table_tennis.dto.SendMessagePayload;
 import com.giho.king_of_table_tennis.entity.ChatMessageEntity;
 import com.giho.king_of_table_tennis.entity.ChatRoomEntity;
@@ -10,8 +11,17 @@ import com.giho.king_of_table_tennis.jwt.JWTUtil;
 import com.giho.king_of_table_tennis.repository.ChatMessageRepository;
 import com.giho.king_of_table_tennis.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -58,5 +68,36 @@ public class ChatMessageService {
       .content(savedChatMessageEntity.getContent())
       .sentAt(savedChatMessageEntity.getSentAt())
       .build();
+  }
+
+  @Transactional(readOnly = true)
+  public PageResponse<ChatMessage> getMessages(String roomId, int page, int size) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    // 채팅방 확인
+    ChatRoomEntity chatRoomEntity = chatRoomRepository.findById(roomId)
+      .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+    // 채팅방에 참여중인지 확인
+    if (!chatRoomEntity.getCreatorId().equals(userId) && !chatRoomEntity.getParticipantId().equals(userId)) {
+      throw new CustomException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+    }
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "sentAt"));
+
+    Page<ChatMessage> messagePage = chatMessageRepository.findChatMessagesByRoomId(roomId, pageable);
+
+    List<ChatMessage> reversed = messagePage.getContent().stream()
+      .sorted(Comparator.comparing(ChatMessage::getSentAt))
+      .toList();
+
+    return new PageResponse<>(
+      reversed,
+      messagePage.getTotalPages(),
+      messagePage.getTotalElements(),
+      messagePage.getNumber(),
+      messagePage.getSize()
+    );
   }
 }
