@@ -1,7 +1,9 @@
 package com.giho.king_of_table_tennis.controller;
 
 import com.giho.king_of_table_tennis.dto.ChatMessage;
+import com.giho.king_of_table_tennis.dto.ReadMessagePayload;
 import com.giho.king_of_table_tennis.dto.SendMessagePayload;
+import com.giho.king_of_table_tennis.event.ReadMessageEvent;
 import com.giho.king_of_table_tennis.service.ChatMessageService;
 import com.giho.king_of_table_tennis.util.WebSocketMessageSender;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,5 +30,15 @@ public class ChatWebSocketController {
     ChatMessage chatMessage = chatMessageService.sendMessage(token, sendMessagePayload);
 
     webSocketMessageSender.sendChatMessage(chatMessage);
+  }
+
+  @MessageMapping("/chat/read")
+  public void readMessage(
+    @Header("Authorization") String token,
+    ReadMessagePayload readMessagePayload
+  ) {
+    ReadMessageEvent readMessageEvent = chatMessageService.readMessage(token, readMessagePayload);
+
+    webSocketMessageSender.sendReadReceipt(readMessageEvent);
   }
 }

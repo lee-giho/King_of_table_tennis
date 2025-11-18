@@ -8,19 +8,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, Long> {
 
-  @Query("""
-    SELECT new com.giho.king_of_table_tennis.dto.ChatMessage(
-      m.id, m.roomId, m.senderId, m.content, m.sentAt
-    )
-    FROM ChatMessageEntity m
-    WHERE m.roomId = :roomId
-  """)
-  Page<ChatMessage> findChatMessagesByRoomId(
+  Page<ChatMessageEntity> findByRoomId(
     @Param("roomId") String roomId,
     Pageable pageable
   );
+
+  Optional<ChatMessageEntity> findTopByRoomIdOrderByIdDesc(String roomId);
 
   long countByRoomIdAndSenderIdNotAndIdGreaterThan(String roomId, String senderId, Long lastReadMessageId);
 }

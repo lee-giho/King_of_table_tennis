@@ -17,4 +17,6 @@ public class ChatMessage {
   private String senderId;
   private String content;
   private LocalDateTime sentAt;
+
+  private int unreadCount;
 }
