@@ -1,12 +1,10 @@
 package com.giho.king_of_table_tennis.service;
 
-import com.giho.king_of_table_tennis.dto.ChatMessage;
-import com.giho.king_of_table_tennis.dto.PageResponse;
-import com.giho.king_of_table_tennis.dto.ReadMessagePayload;
-import com.giho.king_of_table_tennis.dto.SendMessagePayload;
+import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.ChatMessageEntity;
 import com.giho.king_of_table_tennis.entity.ChatReadStateEntity;
 import com.giho.king_of_table_tennis.entity.ChatRoomEntity;
+import com.giho.king_of_table_tennis.event.PreChatRoomUpdatedEvent;
 import com.giho.king_of_table_tennis.event.ReadMessageEvent;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
@@ -15,6 +13,7 @@ import com.giho.king_of_table_tennis.repository.ChatMessageRepository;
 import com.giho.king_of_table_tennis.repository.ChatReadStateRepository;
 import com.giho.king_of_table_tennis.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +38,8 @@ public class ChatMessageService {
   private final ChatReadStateRepository chatReadStateRepository;
 
   private final JWTUtil jwtUtil;
+
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public ChatMessage sendMessage(String token, SendMessagePayload sendMessagePayload) {
@@ -67,6 +68,14 @@ public class ChatMessageService {
 
     // 채팅방 last_message와 last_sent_at 업데이트
     chatRoomEntity.updateLastmessage(savedChatMessageEntity.getContent(), savedChatMessageEntity.getSentAt());
+
+    eventPublisher.publishEvent(
+      new PreChatRoomUpdatedEvent(
+        chatRoomEntity.getId(),
+        chatRoomEntity.getCreatorId(),
+        chatRoomEntity.getParticipantId()
+      )
+    );
 
     return ChatMessage.builder()
       .id(savedChatMessageEntity.getId())

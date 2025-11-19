@@ -1,6 +1,8 @@
 package com.giho.king_of_table_tennis.util;
 
 import com.giho.king_of_table_tennis.dto.ChatMessage;
+import com.giho.king_of_table_tennis.dto.PreChatRoom;
+import com.giho.king_of_table_tennis.entity.ChatRoomEntity;
 import com.giho.king_of_table_tennis.event.ReadMessageEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,6 +25,24 @@ public class WebSocketMessageSender {
     messagingTemplate.convertAndSend(
       "/topic/chat/read/" + readMessageEvent.roomId(),
       readMessageEvent
+    );
+  }
+
+  public void sendPreChatRoom(
+    PreChatRoom preChatRoomForCreator,
+    PreChatRoom preChatRoomForParticipant,
+    String creatorId,
+    String participantId
+  ) {
+
+    messagingTemplate.convertAndSend(
+      "/topic/chat/room/preview/" + creatorId,
+      preChatRoomForCreator
+    );
+
+    messagingTemplate.convertAndSend(
+      "/topic/chat/room/preview/" + participantId,
+      preChatRoomForParticipant
     );
   }
 }

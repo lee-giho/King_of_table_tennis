@@ -22,10 +22,9 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
       cr.id,
 
       friend.id,
-      friend.name, friend.name, friend.email, friend.profileImage,
+      friend.name, friend.nickName, friend.email, friend.profileImage,
       Tti.racketType, Tti.userLevel, Tti.winCount, Tti.defeatCount,
       CASE
-        WHEN friend.id = :userId THEN com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING
         WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
         WHEN f.status IS NOT NULL THEN f.status
         ELSE com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING
@@ -60,5 +59,51 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
   Page<PreChatRoom> findMyPreChatRooms(
     @Param("userId") String userId,
     Pageable pageable
+  );
+
+  @Query("""
+    SELECT new com.giho.king_of_table_tennis.dto.PreChatRoom(
+      cr.id,
+
+      friend.id,
+      friend.name, friend.nickName, friend.email, friend.profileImage,
+      Tti.racketType, Tti.userLevel, Tti.winCount, Tti.defeatCount,
+      CASE
+        WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
+        WHEN f.status IS NOT NULL THEN f.status
+        ELSE com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING
+      END,
+      
+      cr.createdAt,
+      
+      cr.lastMessage,
+      cr.lastSentAt
+    )
+    FROM ChatRoomEntity cr
+      JOIN UserEntity friend
+        ON (
+          (cr.creatorId = :userId AND friend.id = cr.participantId)
+          OR
+          (cr.participantId = :userId AND friend.id = cr.creatorId)
+        )
+      
+      LEFT JOIN UserTableTennisInfoEntity Tti ON Tti.userId = friend.id
+      
+      LEFT JOIN FriendEntity f ON f.userId = :userId
+        AND f.friendId = friend.id
+        
+      LEFT JOIN UserBlockEntity ub ON ub.blockerId = :userId
+        AND ub.blockedId = friend.id
+        
+    WHERE cr.id = :roomId
+      AND (
+        cr.creatorId = :userId
+        OR
+        cr.participantId = :userId
+      )
+  """)
+  Optional<PreChatRoom> findPreChatRoom(
+    @Param("roomId") String roomId,
+    @Param("userId") String userId
   );
 }

@@ -22,6 +22,8 @@ public class PreChatRoom {
   private String lastMessage;
   private LocalDateTime lastSentAt;
 
+  private int unreadCount;
+
   public PreChatRoom(
     String id,
     String participantId, String participantName, String participantNickName, String participantEmail, String participantProfileImage,
@@ -40,5 +42,6 @@ public class PreChatRoom {
     this.createdAt = createdAt;
     this.lastMessage = lastMessage;
     this.lastSentAt = lastSentAt;
+    this.unreadCount = 0;
   }
 }

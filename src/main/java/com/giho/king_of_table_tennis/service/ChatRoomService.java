@@ -4,10 +4,7 @@ import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.ChatRoomEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
-import com.giho.king_of_table_tennis.repository.ChatRoomRepository;
-import com.giho.king_of_table_tennis.repository.FriendRepository;
-import com.giho.king_of_table_tennis.repository.UserBlockRepository;
-import com.giho.king_of_table_tennis.repository.UserRepository;
+import com.giho.king_of_table_tennis.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +30,8 @@ public class ChatRoomService {
   private final FriendRepository friendRepository;
 
   private final UserRepository userRepository;
+
+  private final ChatMessageRepository chatMessageRepository;
 
   @Transactional
   public CreateChatRoomResponse createOrGetChatRoom(CreateChatRoomRequest createChatRoomRequest) {
@@ -78,9 +77,44 @@ public class ChatRoomService {
     Pageable pageable = PageRequest.of(page, size);
 
     Page<PreChatRoom> chatRoomPage = chatRoomRepository.findMyPreChatRooms(userId, pageable);
+    List<PreChatRoom> chatRooms = chatRoomPage.getContent();
+
+    // 방 ID 목록
+    List<String> chatRoomIds = chatRooms.stream()
+      .map(PreChatRoom::getId)
+      .toList();
+
+    if (chatRoomIds.isEmpty()) {
+      // 채팅방이 없으면 unreadCount를 0인 상태로 리턴
+      return new PageResponse<>(
+        chatRooms,
+        chatRoomPage.getTotalPages(),
+        chatRoomPage.getTotalElements(),
+        chatRoomPage.getNumber(),
+        chatRoomPage.getSize()
+      );
+    }
+
+    // 채팅방 목록 전체에 대해 한 번에 unreadCount 계산
+    List<RoomUnreadCount> unreadRaw = chatMessageRepository.countUnreadMessagesByRoomId(chatRoomIds, userId);
+
+    // roomId -> unreadCount 맵으로 변환
+    Map<String, Long> unreadMap = unreadRaw.stream()
+      .collect(Collectors.toMap(
+        RoomUnreadCount::getRoomId,
+        RoomUnreadCount::getUnreadCount
+      ));
+
+    // PreChatRoom DTO에 unreadCount 반영
+    List<PreChatRoom> content = chatRooms.stream()
+      .peek(room -> {
+        long unread = unreadMap.getOrDefault(room.getId(), 0L);
+        room.setUnreadCount((int) unread);
+      })
+      .toList();
 
     return new PageResponse<>(
-      chatRoomPage.getContent(),
+      content,
       chatRoomPage.getTotalPages(),
       chatRoomPage.getTotalElements(),
       chatRoomPage.getNumber(),
