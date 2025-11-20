@@ -28,9 +28,12 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, 
     FROM chat_message m
     LEFT JOIN chat_read_state rs ON rs.room_id = m.room_id
       AND rs.user_id = :userId
+    LEFT JOIN chat_room_user_state s ON s.room_id = m.room_id
+      AND s.user_id = :userId
     WHERE m.room_id IN (:roomIds)
       AND m.sender_id <> :userId
       AND (rs.last_read_message_id IS NULL OR m.id > rs.last_read_message_id)
+      AND (s.deleted_at IS NULL OR m.sent_at > s.deleted_at)
     GROUP BY m.room_id
   """, nativeQuery = true)
   List<RoomUnreadCount> countUnreadMessagesByRoomId(

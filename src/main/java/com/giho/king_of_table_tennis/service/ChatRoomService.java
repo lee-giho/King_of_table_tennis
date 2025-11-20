@@ -2,6 +2,7 @@ package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.ChatRoomEntity;
+import com.giho.king_of_table_tennis.entity.ChatRoomUserStateEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.*;
@@ -33,6 +34,8 @@ public class ChatRoomService {
 
   private final ChatMessageRepository chatMessageRepository;
 
+  private final ChatRoomUserStateRepository chatRoomUserStateRepository;
+
   @Transactional
   public CreateChatRoomResponse createOrGetChatRoom(CreateChatRoomRequest createChatRoomRequest) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -54,20 +57,32 @@ public class ChatRoomService {
     }
 
     return chatRoomRepository.findByCreatorIdAndParticipantIdOrCreatorIdAndParticipantId(
-        userId, targetUserId,
-        targetUserId, userId
-      ).map(room -> new CreateChatRoomResponse(room.getId())) // 기존 방이 있으면 해당 방의 아이디 응답
-      .orElseGet(() -> { // 없으면 새로 방을 만들고 해당 방의 아이디 응답
-        ChatRoomEntity newChatRoomEntity = new ChatRoomEntity();
+      userId, targetUserId,
+      targetUserId, userId
+    )
+    .map(room -> {
+      // 삭제 했던 채팅방이면 다시 되살리기
+      ChatRoomUserStateEntity state = chatRoomUserStateRepository.findByRoomIdAndUserId(room.getId(), userId)
+        .orElse(null);
 
-        newChatRoomEntity.setId(UUID.randomUUID().toString());
-        newChatRoomEntity.setCreatorId(userId);
-        newChatRoomEntity.setParticipantId(targetUserId);
+      if (state != null && state.isDeleted()) {
+        state.restore();
+        chatRoomUserStateRepository.save(state);
+      }
 
-        ChatRoomEntity savedChatRoomEntity = chatRoomRepository.save(newChatRoomEntity);
+      return new CreateChatRoomResponse(room.getId());
+    })
+    .orElseGet(() -> {
+      ChatRoomEntity newChatRoomEntity = new ChatRoomEntity();
 
-        return new CreateChatRoomResponse(savedChatRoomEntity.getId());
-      });
+      newChatRoomEntity.setId(UUID.randomUUID().toString());
+      newChatRoomEntity.setCreatorId(userId);
+      newChatRoomEntity.setParticipantId(targetUserId);
+
+      ChatRoomEntity savedChatRoomEntity = chatRoomRepository.save(newChatRoomEntity);
+
+      return new CreateChatRoomResponse(savedChatRoomEntity.getId());
+    });
   }
 
   public PageResponse<PreChatRoom> getMyChatRooms(int page, int size) {
@@ -158,5 +173,39 @@ public class ChatRoomService {
       myInfo,
       friendInfo
     );
+  }
+
+  @Transactional
+  public void deleteMyChatRoom(String roomId) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    ChatRoomEntity chatRoomEntity = chatRoomRepository.findById(roomId)
+      .orElseThrow(() -> new CustomException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+    // 채팅방에 속해있는지 확인
+    if (!chatRoomEntity.getCreatorId().equals(userId) && !chatRoomEntity.getParticipantId().equals(userId)) {
+      throw new CustomException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+    }
+
+    ChatRoomUserStateEntity myState = chatRoomUserStateRepository.findByRoomIdAndUserId(roomId, userId)
+      .orElseGet(() -> {
+        ChatRoomUserStateEntity s = new ChatRoomUserStateEntity();
+        s.setRoomId(roomId);
+        s.setUserId(userId);
+        return s;
+      });
+    myState.markDeleted();;
+    chatRoomUserStateRepository.save(myState);
+
+    String friendId = chatRoomEntity.getCreatorId().equals(userId)
+      ? chatRoomEntity.getParticipantId()
+      : chatRoomEntity.getCreatorId();
+
+    chatRoomUserStateRepository.findByRoomIdAndUserId(roomId, friendId)
+      .filter(ChatRoomUserStateEntity::isDeleted)
+      .ifPresent(friendState -> {
+        chatRoomRepository.delete(chatRoomEntity);
+      });
   }
 }

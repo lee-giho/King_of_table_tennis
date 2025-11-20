@@ -20,7 +20,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.PreChatRoom(
       cr.id,
-
       friend.id,
       friend.name, friend.nickName, friend.email, friend.profileImage,
       Tti.racketType, Tti.userLevel, Tti.winCount, Tti.defeatCount,
@@ -29,9 +28,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
         WHEN f.status IS NOT NULL THEN f.status
         ELSE com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING
       END,
-      
       cr.createdAt,
-      
       cr.lastMessage,
       cr.lastSentAt
     )
@@ -42,18 +39,15 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
           OR
           (cr.participantId = :userId AND friend.id = cr.creatorId)
         )
-      
       LEFT JOIN UserTableTennisInfoEntity Tti ON Tti.userId = friend.id
-      
       LEFT JOIN FriendEntity f ON f.userId = :userId
         AND f.friendId = friend.id
-        
       LEFT JOIN UserBlockEntity ub ON ub.blockerId = :userId
         AND ub.blockedId = friend.id
-        
-    WHERE cr.creatorId = :userId
-      OR cr.participantId = :userId
-      
+      LEFT JOIN ChatRoomUserStateEntity state ON state.roomId = cr.id
+        AND state.userId = :userId
+    WHERE (cr.creatorId = :userId OR cr.participantId = :userId)
+      AND (state IS NULL OR state.deleted = false)
     ORDER BY COALESCE(cr.lastSentAt, cr.createdAt) DESC
   """)
   Page<PreChatRoom> findMyPreChatRooms(
@@ -64,7 +58,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.PreChatRoom(
       cr.id,
-
       friend.id,
       friend.name, friend.nickName, friend.email, friend.profileImage,
       Tti.racketType, Tti.userLevel, Tti.winCount, Tti.defeatCount,
@@ -73,9 +66,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
         WHEN f.status IS NOT NULL THEN f.status
         ELSE com.giho.king_of_table_tennis.entity.FriendStatus.NOTHING
       END,
-      
       cr.createdAt,
-      
       cr.lastMessage,
       cr.lastSentAt
     )
@@ -86,21 +77,16 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
           OR
           (cr.participantId = :userId AND friend.id = cr.creatorId)
         )
-      
       LEFT JOIN UserTableTennisInfoEntity Tti ON Tti.userId = friend.id
-      
       LEFT JOIN FriendEntity f ON f.userId = :userId
         AND f.friendId = friend.id
-        
       LEFT JOIN UserBlockEntity ub ON ub.blockerId = :userId
         AND ub.blockedId = friend.id
-        
+        LEFT JOIN ChatRoomUserStateEntity state ON state.roomId = cr.id
+        AND state.userId = :userId
     WHERE cr.id = :roomId
-      AND (
-        cr.creatorId = :userId
-        OR
-        cr.participantId = :userId
-      )
+      AND (cr.creatorId = :userId OR cr.participantId = :userId)
+      AND (state IS NULL OR state.deleted = false)
   """)
   Optional<PreChatRoom> findPreChatRoom(
     @Param("roomId") String roomId,

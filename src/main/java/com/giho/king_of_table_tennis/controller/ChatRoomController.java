@@ -71,4 +71,12 @@ public class ChatRoomController {
     ChatRoomUsersInfo chatRoomUsersInfo = chatRoomService.getChatRoomUsersInfo(chatRoomId);
     return ResponseEntity.ok(chatRoomUsersInfo);
   }
+
+  @DeleteMapping("/{chatRoomId}")
+  public ResponseEntity<Void> deleteMyChatRoom(
+    @PathVariable(name = "chatRoomId") String chatRoomId
+  ) {
+    chatRoomService.deleteMyChatRoom(chatRoomId);
+    return ResponseEntity.noContent().build();
+  }
 }
