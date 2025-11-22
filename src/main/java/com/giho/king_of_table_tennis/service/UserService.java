@@ -2,9 +2,11 @@ package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.UserEntity;
+import com.giho.king_of_table_tennis.entity.UserRankingEntity;
 import com.giho.king_of_table_tennis.entity.UserTableTennisInfoEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
+import com.giho.king_of_table_tennis.repository.UserRankingRepository;
 import com.giho.king_of_table_tennis.repository.UserRepository;
 import com.giho.king_of_table_tennis.repository.UserTableTennisInfoRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,8 @@ public class UserService {
   private final UserRepository userRepository;
 
   private final UserTableTennisInfoRepository userTableTennisInfoRepository;
+
+  private final UserRankingRepository userRankingRepository;
 
   private final ImageService imageService;
 
@@ -84,6 +88,12 @@ public class UserService {
     userTableTennisInfoEntity.setUserLevel(tennisInfoRegistrationRequestDTO.getUserLevel());
 
     userTableTennisInfoRepository.save(userTableTennisInfoEntity);
+
+    UserRankingEntity userRankingEntity = new UserRankingEntity();
+
+    userRankingEntity.setUserId(userId);
+
+    userRankingRepository.save(userRankingEntity);
 
     return new BooleanResponseDTO(true);
   }

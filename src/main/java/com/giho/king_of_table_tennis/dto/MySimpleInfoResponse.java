@@ -15,6 +15,7 @@ public class MySimpleInfoResponse {
   private String nickName;
   private String profileImage;
   private String racketType;
+  private int totalGames;
   private int winCount;
   private int defeatCount;
 }

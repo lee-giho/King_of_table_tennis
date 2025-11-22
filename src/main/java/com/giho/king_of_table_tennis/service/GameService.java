@@ -263,12 +263,14 @@ public class GameService {
         UserTableTennisInfoEntity cTti = (UserTableTennisInfoEntity) row[5];
         FriendEntity dFriend = (FriendEntity) row[6];
         FriendEntity cFriend = (FriendEntity) row[7];
-        long applicationCount = (long) row[8];
-        boolean hasReviewed = (Boolean) row[9];
+        UserRankingEntity dRanking = (UserRankingEntity) row[8];
+        UserRankingEntity cRanking = (UserRankingEntity) row[9];
+        long applicationCount = (long) row[10];
+        boolean hasReviewed = (Boolean) row[11];
 
-        UserInfo defenderInfo = toUserInfo(d, dTti, dFriend, userId);
+        UserInfo defenderInfo = toUserInfo(d, dTti, dRanking, dFriend, userId);
         UserInfo challengerInfo = (c != null)
-          ? toUserInfo(c, cTti, cFriend, userId)
+          ? toUserInfo(c, cTti, cRanking, cFriend, userId)
           : null;
 
         boolean isMine = d.getId().equals(userId);
@@ -371,31 +373,16 @@ public class GameService {
     return g;
   }
 
-  private UserInfo toUserInfo(UserEntity u, UserTableTennisInfoEntity tti, FriendEntity friend, String currentUserId) {
-    String racketType = (tti != null) ? tti.getRacketType() : null;
-    String userLevel = (tti != null) ? tti.getUserLevel() : null;
-
-    int winCount = (tti != null)
-      ? tti.getWinCount()
-      : 0;
-    int defeatCount = (tti != null)
-      ? tti.getDefeatCount()
-      : 0;
+  private UserInfo toUserInfo(UserEntity u, UserTableTennisInfoEntity tti, UserRankingEntity ranking, FriendEntity friend, String currentUserId) {
 
     FriendStatus friendStatus = (u.getId().equals(currentUserId) || friend == null)
       ? null
       : friend.getStatus();
 
     return new UserInfo(
-      u.getId(),
-      u.getName(),
-      u.getNickName(),
-      u.getEmail(),
-      u.getProfileImage(),
-      racketType,
-      userLevel,
-      winCount,
-      defeatCount,
+      u.getId(), u.getName(), u.getNickName(), u.getEmail(), u.getProfileImage(),
+      tti.getRacketType(), tti.getUserLevel(),
+      ranking.getRating(), ranking.getWinRate(), ranking.getTotalGames(), ranking.getWinCount(), ranking.getDefeatCount(), ranking.getLastGameAt(),
       friendStatus
     );
   }

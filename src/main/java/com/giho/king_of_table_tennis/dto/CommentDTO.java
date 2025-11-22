@@ -30,15 +30,9 @@ public class CommentDTO {
   public CommentDTO(
     String id,
     String postId,
-    String writerId,
-    String writerName,
-    String writerNickName,
-    String writerEmail,
-    String writerProfileImage,
-    String racketType,
-    String userLevel,
-    Integer winCount,
-    Integer defeatCount,
+    String writerId, String writerName, String writerNickName, String writerEmail, String writerProfileImage,
+    String racketType, String userLevel,
+    int rating, double winRate, int totalGames, Integer winCount, Integer defeatCount, LocalDateTime lastGameAt,
     FriendStatus friendStatus,
     String content,
     LocalDateTime createdAt,
@@ -50,8 +44,7 @@ public class CommentDTO {
     this.writer = new UserInfo(
       writerId, writerName, writerNickName, writerEmail, writerProfileImage,
       racketType, userLevel,
-      winCount != null ? winCount : 0,
-      defeatCount != null ? defeatCount : 0,
+      rating, winRate, totalGames, winCount, defeatCount, lastGameAt,
       friendStatus
     );
     this.content = content;

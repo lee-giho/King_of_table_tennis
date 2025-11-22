@@ -16,13 +16,15 @@ public interface GameApplicationRepository extends JpaRepository<GameApplication
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
-      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      tti.racketType, tti.userLevel,
+      ranking.rating, ranking.winRate, ranking.totalGames, ranking.winCount, ranking.defeatCount, ranking.lastGameAt,
       f.status
     )
     FROM GameApplicationEntity ga
-    JOIN UserEntity u ON u.id = ga.applicantId
-    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
-    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
+      JOIN UserEntity u ON u.id = ga.applicantId
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
+      LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE ga.gameInfoId = :gameInfoId
     ORDER BY ga.applicationAt ASC
   """)
