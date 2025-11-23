@@ -42,6 +42,15 @@ public class UserRankingController {
     return ResponseEntity.ok(pageResponse);
   }
 
+  @Operation(summary = "사용자 랭킹 조회", description = "해당 사용자의 랭킹을 조회하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "랭킹 정보 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = UserRankingInfo.class)
+    )
+  )
   @GetMapping("/{userId}/ranking")
   public ResponseEntity<UserRankingInfo> getUserRanking(
     @PathVariable(name = "userId") String userId,

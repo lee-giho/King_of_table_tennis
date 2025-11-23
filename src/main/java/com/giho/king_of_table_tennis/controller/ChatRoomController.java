@@ -72,6 +72,11 @@ public class ChatRoomController {
     return ResponseEntity.ok(chatRoomUsersInfo);
   }
 
+  @Operation(summary = "채팅방 나가기", description = "자신이 참여하고 있는 채팅방 나가는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "채팅방 나가기 완료(본문 없음)"
+  )
   @DeleteMapping("/{chatRoomId}")
   public ResponseEntity<Void> deleteMyChatRoom(
     @PathVariable(name = "chatRoomId") String chatRoomId
