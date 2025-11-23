@@ -11,13 +11,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
-@Schema(description = "민감한 정보를 제외한 사용자 DTO")
-public class UserInfo {
+@Schema(description = "민감한 정보를 제외한 랭킹 사용자 DTO")
+public class UserRankingInfo {
   // 기본 정보
   private String id;
-  private String name;
   private String nickName;
-  private String email;
   private String profileImage;
 
   // 탁구 정보
@@ -30,7 +28,8 @@ public class UserInfo {
   private int totalGames;
   private int winCount;
   private int defeatCount;
-  private LocalDateTime lastGameAt;
+  private int ranking;
 
   private FriendStatus friendStatus;
 }
+

@@ -26,7 +26,8 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
-      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      tti.racketType, tti.userLevel,
+      ranking.rating, ranking.winRate, ranking.totalGames, ranking.winCount, ranking.defeatCount, ranking.lastGameAt,
       CASE
         WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
         WHEN f.status IS NOT NULL THEN f.status
@@ -34,9 +35,10 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
       END
     )
     FROM UserEntity u
-    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
-    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
-    LEFT JOIN UserBlockEntity ub ON ub.blockerId = :currentUserId AND ub.blockedId = u.id
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
+      LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
+      LEFT JOIN UserBlockEntity ub ON ub.blockerId = :currentUserId AND ub.blockedId = u.id
     WHERE u.id IN :userIds
   """)
   List<UserInfo> findUserInfoByIds(@Param("userIds") List<String> userIds, @Param("currentUserId") String currentUserId);
@@ -44,7 +46,8 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
-      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      tti.racketType, tti.userLevel,
+      ranking.rating, ranking.winRate, ranking.totalGames, ranking.winCount, ranking.defeatCount, ranking.lastGameAt,
       CASE
         WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
         WHEN f.status IS NOT NULL THEN f.status
@@ -52,9 +55,10 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
       END
     )
     FROM UserEntity u
-    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
-    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
-    LEFT JOIN UserBlockEntity ub ON ub.blockerId = :currentUserId AND ub.blockedId = u.id
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
+      LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
+      LEFT JOIN UserBlockEntity ub ON ub.blockerId = :currentUserId AND ub.blockedId = u.id
     WHERE u.id = :id
   """)
   Optional<UserInfo> findUserInfoById(@Param("id") String id, @Param("currentUserId") String currentUserId);
@@ -74,9 +78,11 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.MySimpleInfoResponse(
       u.nickName, u.profileImage,
-      tti.racketType, tti.winCount, tti.defeatCount
+      tti.racketType,
+      ranking.totalGames, ranking.winCount, ranking.defeatCount
     )
     FROM UserEntity u JOIN UserTableTennisInfoEntity tti ON u.id = tti.userId
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
     WHERE u.id = :id
   """)
   MySimpleInfoResponse findMySimpleInfoById(@Param("id") String id);
@@ -84,7 +90,8 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
-      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      tti.racketType, tti.userLevel,
+      ranking.rating, ranking.winRate, ranking.totalGames, ranking.winCount, ranking.defeatCount, ranking.lastGameAt,
       CASE
         WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
         WHEN f.status IS NOT NULL THEN f.status
@@ -92,9 +99,10 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
       END
     )
     FROM UserEntity u
-    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
-    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
-    LEFT JOIN UserBlockEntity ub ON ub.blockerId = :currentUserId AND ub.blockedId = u.id
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
+      LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
+      LEFT JOIN UserBlockEntity ub ON ub.blockerId = :currentUserId AND ub.blockedId = u.id
     WHERE u.id <> :currentUserId
       AND (
         :keyword IS NULL

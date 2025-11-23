@@ -27,17 +27,18 @@ public class PreChatRoom {
   public PreChatRoom(
     String id,
     String participantId, String participantName, String participantNickName, String participantEmail, String participantProfileImage,
-    String pRacketType, String pUserLevel, Integer pWinCount, Integer pDefeatCount,
-    FriendStatus pFriendStatus,
+    String racketType, String userLevel,
+    int rating, double winRate, int totalGames, Integer winCount, Integer defeatCount, LocalDateTime lastGameAt,
+    FriendStatus friendStatus,
     LocalDateTime createdAt,
     String lastMessage, LocalDateTime lastSentAt
   ) {
     this.id = id;
     this.friend = new UserInfo(
       participantId, participantName, participantNickName, participantEmail, participantProfileImage,
-      pRacketType, pUserLevel,
-      pWinCount != null ? pWinCount : 0, pDefeatCount != null ? pDefeatCount : 0,
-      pFriendStatus
+      racketType, userLevel,
+      rating, winRate, totalGames, winCount, defeatCount, lastGameAt,
+      friendStatus
     );
     this.createdAt = createdAt;
     this.lastMessage = lastMessage;

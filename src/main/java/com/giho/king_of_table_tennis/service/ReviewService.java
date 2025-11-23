@@ -109,26 +109,7 @@ public class ReviewService {
     List<GameReviewDTO> content = rawPage.getContent().stream().map(row -> {
       GameReviewEntity gr = (GameReviewEntity) row[0];
       GameInfoEntity g = (GameInfoEntity) row[1];
-      UserEntity u = (UserEntity) row[2];
-      UserTableTennisInfoEntity tti = (UserTableTennisInfoEntity) row[3];
-      FriendEntity f = (FriendEntity) row[4];
-
-      FriendStatus friendStatus = (f != null)
-        ? f.getStatus()
-        : FriendStatus.NOTHING;
-
-      UserInfo userInfo = new UserInfo(
-        u.getId(),
-        u.getName(),
-        u.getNickName(),
-        u.getEmail(),
-        u.getProfileImage(),
-        tti.getRacketType(),
-        tti.getUserLevel(),
-        tti.getWinCount(),
-        tti.getDefeatCount(),
-        friendStatus
-      );
+      UserInfo userInfo = getUserInfo(row);
 
       String placeName = placeNameById.getOrDefault(g.getPlace(), g.getPlace());
 
@@ -163,6 +144,25 @@ public class ReviewService {
     }).toList();
 
     return new PageImpl<>(content, pageable, rawPage.getTotalElements());
+  }
+
+  private static UserInfo getUserInfo(Object[] row) {
+    UserEntity u = (UserEntity) row[2];
+    UserTableTennisInfoEntity tti = (UserTableTennisInfoEntity) row[3];
+    UserRankingEntity ranking = (UserRankingEntity) row[4];
+    FriendEntity f = (FriendEntity) row[5];
+
+    FriendStatus friendStatus = (f != null)
+      ? f.getStatus()
+      : FriendStatus.NOTHING;
+
+    UserInfo userInfo = new UserInfo(
+      u.getId(), u.getName(), u.getNickName(), u.getEmail(), u.getProfileImage(),
+      tti.getRacketType(), tti.getUserLevel(),
+      ranking.getRating(), ranking.getWinRate(), ranking.getTotalGames(), ranking.getWinCount(), ranking.getDefeatCount(), ranking.getLastGameAt(),
+      friendStatus
+    );
+    return userInfo;
   }
 
   @Transactional

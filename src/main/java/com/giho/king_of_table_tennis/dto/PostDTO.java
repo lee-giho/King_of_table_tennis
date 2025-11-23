@@ -32,15 +32,9 @@ public class PostDTO {
 
   public PostDTO(
     String id,
-    String writerId,
-    String writerName,
-    String writerNickName,
-    String writerEmail,
-    String writerProfileImage,
-    String racketType,
-    String userLevel,
-    Integer winCount,
-    Integer defeatCount,
+    String writerId, String writerName, String writerNickName, String writerEmail, String writerProfileImage,
+    String racketType, String userLevel,
+    int rating, double winRate, int totalGames, Integer winCount, Integer defeatCount, LocalDateTime lastGameAt,
     FriendStatus friendStatus,
     String title,
     PostCategory category,
@@ -53,8 +47,7 @@ public class PostDTO {
     this.writer = new UserInfo(
       writerId, writerName, writerNickName, writerEmail, writerProfileImage,
       racketType, userLevel,
-      winCount != null ? winCount : 0,
-      defeatCount != null ? defeatCount : 0,
+      rating, winRate, totalGames, winCount, defeatCount, lastGameAt,
       friendStatus
     );
     this.title = title;

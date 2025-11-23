@@ -22,10 +22,4 @@ public class UserTableTennisInfoEntity {
 
   @Column(name = "user_level", nullable = false)
   private String userLevel;
-
-  @Column(name = "win_count", nullable = true)
-  private int winCount;
-
-  @Column(name = "defeat_count", nullable = true)
-  private int defeatCount;
 }

@@ -18,12 +18,14 @@ public interface FriendRepository extends JpaRepository<FriendEntity, String> {
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
-      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      tti.racketType, tti.userLevel,
+      ranking.rating, ranking.winRate, ranking.totalGames, ranking.winCount, ranking.defeatCount, ranking.lastGameAt,
       f.status
     )
     FROM FriendEntity f
-    JOIN UserEntity u ON u.id = f.friendId
-    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      JOIN UserEntity u ON u.id = f.friendId
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
     WHERE f.userId = :userId
       AND f.status = com.giho.king_of_table_tennis.entity.FriendStatus.RECEIVED
   """)
@@ -68,12 +70,14 @@ public interface FriendRepository extends JpaRepository<FriendEntity, String> {
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
-      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      tti.racketType, tti.userLevel,
+      ranking.rating, ranking.winRate, ranking.totalGames, ranking.winCount, ranking.defeatCount, ranking.lastGameAt,
       f.status
     )
     FROM FriendEntity f
-    JOIN UserEntity u ON u.id = f.friendId
-    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      JOIN UserEntity u ON u.id = f.friendId
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
     WHERE f.userId = :userId
       AND f.status = com.giho.king_of_table_tennis.entity.FriendStatus.FRIEND
       AND NOT EXISTS (
@@ -98,12 +102,14 @@ public interface FriendRepository extends JpaRepository<FriendEntity, String> {
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.UserInfo(
       u.id, u.name, u.nickName, u.email, u.profileImage,
-      tti.racketType, tti.userLevel, tti.winCount, tti.defeatCount,
+      tti.racketType, tti.userLevel,
+      ranking.rating, ranking.winRate, ranking.totalGames, ranking.winCount, ranking.defeatCount, ranking.lastGameAt,
       f.status
     )
     FROM FriendEntity f
       JOIN UserEntity u ON u.id = f.friendId
       LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
     WHERE f.userId = :userId
       AND EXISTS (
         SELECT 1

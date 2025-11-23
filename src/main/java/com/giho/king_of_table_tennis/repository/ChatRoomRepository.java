@@ -20,9 +20,9 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.PreChatRoom(
       cr.id,
-      friend.id,
-      friend.name, friend.nickName, friend.email, friend.profileImage,
-      Tti.racketType, Tti.userLevel, Tti.winCount, Tti.defeatCount,
+      friend.id, friend.name, friend.nickName, friend.email, friend.profileImage,
+      tti.racketType, tti.userLevel,
+      ranking.rating, ranking.winRate, ranking.totalGames, ranking.winCount, ranking.defeatCount, ranking.lastGameAt,
       CASE
         WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
         WHEN f.status IS NOT NULL THEN f.status
@@ -39,13 +39,11 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
           OR
           (cr.participantId = :userId AND friend.id = cr.creatorId)
         )
-      LEFT JOIN UserTableTennisInfoEntity Tti ON Tti.userId = friend.id
-      LEFT JOIN FriendEntity f ON f.userId = :userId
-        AND f.friendId = friend.id
-      LEFT JOIN UserBlockEntity ub ON ub.blockerId = :userId
-        AND ub.blockedId = friend.id
-      LEFT JOIN ChatRoomUserStateEntity state ON state.roomId = cr.id
-        AND state.userId = :userId
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = friend.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = friend.id
+      LEFT JOIN FriendEntity f ON f.userId = :userId AND f.friendId = friend.id
+      LEFT JOIN UserBlockEntity ub ON ub.blockerId = :userId AND ub.blockedId = friend.id
+      LEFT JOIN ChatRoomUserStateEntity state ON state.roomId = cr.id AND state.userId = :userId
     WHERE (cr.creatorId = :userId OR cr.participantId = :userId)
       AND (state IS NULL OR state.deleted = false)
     ORDER BY COALESCE(cr.lastSentAt, cr.createdAt) DESC
@@ -60,7 +58,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
       cr.id,
       friend.id,
       friend.name, friend.nickName, friend.email, friend.profileImage,
-      Tti.racketType, Tti.userLevel, Tti.winCount, Tti.defeatCount,
+      tti.racketType, tti.userLevel,
+      ranking.rating, ranking.winRate, ranking.totalGames, ranking.winCount, ranking.defeatCount, ranking.lastGameAt,
       CASE
         WHEN ub.blockerId IS NOT NULL THEN com.giho.king_of_table_tennis.entity.FriendStatus.BLOCKED
         WHEN f.status IS NOT NULL THEN f.status
@@ -77,13 +76,11 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, String
           OR
           (cr.participantId = :userId AND friend.id = cr.creatorId)
         )
-      LEFT JOIN UserTableTennisInfoEntity Tti ON Tti.userId = friend.id
-      LEFT JOIN FriendEntity f ON f.userId = :userId
-        AND f.friendId = friend.id
-      LEFT JOIN UserBlockEntity ub ON ub.blockerId = :userId
-        AND ub.blockedId = friend.id
-        LEFT JOIN ChatRoomUserStateEntity state ON state.roomId = cr.id
-        AND state.userId = :userId
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = friend.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = friend.id
+      LEFT JOIN FriendEntity f ON f.userId = :userId AND f.friendId = friend.id
+      LEFT JOIN UserBlockEntity ub ON ub.blockerId = :userId AND ub.blockedId = friend.id
+      LEFT JOIN ChatRoomUserStateEntity state ON state.roomId = cr.id AND state.userId = :userId
     WHERE cr.id = :roomId
       AND (cr.creatorId = :userId OR cr.participantId = :userId)
       AND (state IS NULL OR state.deleted = false)

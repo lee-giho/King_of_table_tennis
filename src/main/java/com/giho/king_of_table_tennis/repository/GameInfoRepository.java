@@ -31,7 +31,7 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
       ) THEN true ELSE false END
     )
     FROM GameInfoEntity g
-    JOIN GameStateEntity s ON g.id = s.gameInfoId
+      JOIN GameStateEntity s ON g.id = s.gameInfoId
     WHERE g.place = :place
       AND g.gameDate > :now
   """)
@@ -51,7 +51,7 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
       ) THEN true ELSE false END
     )
     FROM GameInfoEntity g
-    JOIN GameStateEntity s ON g.id = s.gameInfoId
+      JOIN GameStateEntity s ON g.id = s.gameInfoId
     WHERE g.place = :place
       AND g.gameDate < :now
   """)
@@ -60,7 +60,7 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
   Page<GameInfoEntity> findByPlaceAndGameDateAfterOrderByGameDateAsc(String place, LocalDateTime now, Pageable pageable);
 
   @Query("""
-    SELECT g, s, d, c, dTti, cTti, dFriend, cFriend,
+    SELECT g, s, d, c, dTti, cTti, dFriend, cFriend, dRanking, cRanking,
       ( SELECT COUNT(ga)
         FROM GameApplicationEntity ga
         WHERE ga.gameInfoId = g.id
@@ -73,13 +73,15 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
         ) THEN true ELSE false END
       ) AS hasReviewed
     FROM GameInfoEntity g
-    JOIN GameStateEntity s ON g.id = s.gameInfoId
-    JOIN UserEntity d ON d.id = s.defenderId
-    LEFT JOIN UserEntity c ON c.id = s.challengerId
-    LEFT JOIN UserTableTennisInfoEntity dTti ON dTti.userId = d.id
-    LEFT JOIN UserTableTennisInfoEntity cTti ON cTti.userId = c.id
-    LEFT JOIN FriendEntity dFriend ON dFriend.userId = :userId AND dFriend.friendId = d.id
-    LEFT JOIN FriendEntity cFriend ON cFriend.userId = :userId AND cFriend.friendId = c.id
+      JOIN GameStateEntity s ON g.id = s.gameInfoId
+      JOIN UserEntity d ON d.id = s.defenderId
+      LEFT JOIN UserEntity c ON c.id = s.challengerId
+      LEFT JOIN UserTableTennisInfoEntity dTti ON dTti.userId = d.id
+      LEFT JOIN UserTableTennisInfoEntity cTti ON cTti.userId = c.id
+      LEFT JOIN FriendEntity dFriend ON dFriend.userId = :userId AND dFriend.friendId = d.id
+      LEFT JOIN FriendEntity cFriend ON cFriend.userId = :userId AND cFriend.friendId = c.id
+      LEFT JOIN UserRankingEntity dRanking ON dRanking.userId = d.id
+      LEFT JOIN UserRankingEntity cRanking ON cRanking.userId = c.id
     WHERE (s.defenderId = :userId OR s.challengerId = :userId)
       AND s.state IN :gameStates
     ORDER BY g.gameDate ASC

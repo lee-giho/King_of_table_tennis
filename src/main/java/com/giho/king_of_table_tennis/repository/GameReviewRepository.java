@@ -13,12 +13,13 @@ public interface GameReviewRepository extends JpaRepository<GameReviewEntity, St
 
   // 내가 작성한 리뷰 가져오기
   @Query("""
-    SELECT gr, g, u, tti, f
+    SELECT gr, g, u, tti, ranking, f
     FROM GameReviewEntity gr
-    JOIN GameInfoEntity g ON g.id = gr.gameInfoId
-    JOIN UserEntity u ON u.id = gr.revieweeId
-    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
-    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
+      JOIN GameInfoEntity g ON g.id = gr.gameInfoId
+      JOIN UserEntity u ON u.id = gr.revieweeId
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
+      LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE gr.reviewerId = :reviewerId
     ORDER BY gr.createdAt DESC
   """)
@@ -30,12 +31,13 @@ public interface GameReviewRepository extends JpaRepository<GameReviewEntity, St
 
   // 내가 받은 리뷰 가져오기
   @Query("""
-    SELECT gr, g, u, tti, f
+    SELECT gr, g, u, tti, ranking, f
     FROM GameReviewEntity gr
-    JOIN GameInfoEntity g ON g.id = gr.gameInfoId
-    JOIN UserEntity u ON u.id = gr.reviewerId
-    LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
-    LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
+      JOIN GameInfoEntity g ON g.id = gr.gameInfoId
+      JOIN UserEntity u ON u.id = gr.reviewerId
+      LEFT JOIN UserTableTennisInfoEntity tti ON tti.userId = u.id
+      LEFT JOIN UserRankingEntity ranking ON ranking.userId = u.id
+      LEFT JOIN FriendEntity f ON f.userId = :currentUserId AND f.friendId = u.id
     WHERE gr.revieweeId = :revieweeId
     ORDER BY gr.createdAt DESC
   """)
