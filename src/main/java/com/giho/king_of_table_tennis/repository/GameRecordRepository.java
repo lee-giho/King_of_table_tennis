@@ -79,7 +79,7 @@ public interface GameRecordRepository extends JpaRepository<GameStateEntity, Str
     SELECT
       COUNT(*) AS totalGames,
       
-      SUM(
+      COALESCE(SUM(
         CASE
           WHEN (
               (gs.defender_id = :userId AND gs.defender_score > gs.challenger_score)
@@ -87,9 +87,9 @@ public interface GameRecordRepository extends JpaRepository<GameStateEntity, Str
               (gs.challenger_id = :userId AND gs.challenger_score > gs.defender_score)
           ) THEN 1 ELSE 0
         END
-      ) AS winCount,
+      ), 0) AS winCount,
         
-      SUM(
+      COALESCE(SUM(
         CASE
           WHEN (
               (gs.defender_id = :userId AND gs.defender_score < gs.challenger_score)
@@ -97,11 +97,11 @@ public interface GameRecordRepository extends JpaRepository<GameStateEntity, Str
               (gs.challenger_id = :userId AND gs.challenger_score < gs.defender_score)
           ) THEN 1 ELSE 0
         END
-      ) AS defeatCount,
+      ), 0) AS defeatCount,
       
       CASE
         WHEN COUNT(*) = 0 THEN 0
-        ELSE SUM(
+        ELSE COALESCE(SUM(
           CASE
             WHEN (
               (gs.defender_id = :userId AND gs.defender_score > gs.challenger_score)
@@ -109,7 +109,7 @@ public interface GameRecordRepository extends JpaRepository<GameStateEntity, Str
               (gs.challenger_id = :userId AND gs.challenger_score > gs.defender_score)
             ) THEN 1 ELSE 0
           END
-        ) / COUNT(*)
+        ), 0) / COUNT(*)
       END AS winRate
       
     FROM (

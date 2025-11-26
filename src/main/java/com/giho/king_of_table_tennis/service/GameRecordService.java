@@ -2,10 +2,12 @@ package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.TableTennisCourtEntity;
+import com.giho.king_of_table_tennis.entity.UserEntity;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.GameRecordRepository;
 import com.giho.king_of_table_tennis.repository.TableTennisCourtRepository;
+import com.giho.king_of_table_tennis.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +26,8 @@ public class GameRecordService {
   private final GameRecordRepository gameRecordRepository;
 
   private final TableTennisCourtRepository tableTennisCourtRepository;
+
+  private final UserRepository userRepository;
 
   @Transactional(readOnly = true)
   public PageResponse<GameRecordInfo> getUserGameRecords(String userId, int page ,int size) {
@@ -87,6 +91,9 @@ public class GameRecordService {
 
   @Transactional(readOnly = true)
   public UserGameRecordsStatsResponse getUserGameRecordsStats(String userId) {
+    UserEntity userEntity = userRepository.findById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
     // 전체 전적 조회
     GameStatsProjection total = gameRecordRepository.findTotalStats(userId)
       .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -108,6 +115,11 @@ public class GameRecordService {
       recent.getWinRate()
     );
 
-    return new UserGameRecordsStatsResponse(totalStats, recentStats);
+    return new UserGameRecordsStatsResponse(
+      userEntity.getNickName(),
+      userEntity.getProfileImage(),
+      totalStats,
+      recentStats
+    );
   }
 }
