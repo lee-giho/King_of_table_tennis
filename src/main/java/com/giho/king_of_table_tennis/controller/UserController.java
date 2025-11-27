@@ -32,6 +32,8 @@ public class UserController {
 
   private final FriendService friendService;
 
+  private final GameRecordService gameRecordService;
+
   @Operation(summary = "nickName 중복 확인", description = "회원가입 시 사용하려는 nickName의 중복 여부를 확인하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
@@ -380,5 +382,41 @@ public class UserController {
   ) {
     PageResponse<UserInfo> pageResponse = friendService.getFriendList(page, size, isBlocked);
     return ResponseEntity.ok(pageResponse);
+  }
+
+  @Operation(summary = "경기 전적 조회", description = "해당 사용자의 경기 전적을 조회하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "경기 전적 목록 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/{userId}/game/records")
+  public ResponseEntity<PageResponse<GameRecordInfo>> getUserGameRecords(
+    @PathVariable(name = "userId") String userId,
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "20") int size
+  ) {
+    PageResponse<GameRecordInfo> pageResponse = gameRecordService.getUserGameRecords(userId, page, size);
+    return ResponseEntity.ok(pageResponse);
+  }
+
+  @Operation(summary = "경기 전적 스탯 조회", description = "해당 사용자의 최근 10경기와 전체 전적 스탯을 조회하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "최근 10경기 또는 전체 경기 전적 스탯 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = PageResponse.class)
+    )
+  )
+  @GetMapping("/{userId}/game/records/stats")
+  public ResponseEntity<UserGameRecordsStatsResponse> getUserGameRecordsStats(
+    @PathVariable(name = "userId") String userId
+  ) {
+    UserGameRecordsStatsResponse userGameRecordsStatsResponse = gameRecordService.getUserGameRecordsStats(userId);
+    return ResponseEntity.ok(userGameRecordsStatsResponse);
   }
 }
