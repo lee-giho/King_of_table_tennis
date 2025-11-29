@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -89,6 +88,21 @@ public class GameController {
     PageResponse<RecruitingGameDTO> pageResponse = gameService.getRecruitingGameList(tableTennisCourtId, type, page, size);
     return ResponseEntity.ok(pageResponse);
   }
+
+  @Operation(summary = "경기 종료 및 결과 저장", description = "경기 상태와 세트 점수, 승/패, 랭킹을 업데이트 하는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "204",
+    description = "경기 종료 및 결과 저장 성공(본문 없음)"
+  )
+  @PostMapping("/{gameInfoId}/result")
+  public ResponseEntity<Void> finishGame(
+    @PathVariable(name = "gameInfoId") String gameInfoId,
+    @RequestBody FinishGameRequest finishGameRequest
+  ) {
+    gameService.finishGame(gameInfoId, finishGameRequest);
+    return ResponseEntity.noContent().build();
+  }
+
 
   @Operation(summary = "경기에 대한 자세한 정보 불러오기", description = "참가자 정보와 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
