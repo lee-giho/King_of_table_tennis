@@ -16,6 +16,9 @@ public class GameInfoEntity {
   @Column(name = "id", nullable = false, unique = true)
   private String id;
 
+  @Column(name = "title", nullable = false)
+  private String title;
+
   @Column(name = "game_set", nullable = false)
   private int gameSet;
 

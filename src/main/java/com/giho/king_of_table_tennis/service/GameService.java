@@ -2,6 +2,7 @@ package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.*;
+import com.giho.king_of_table_tennis.enums.GameTitleTemplate;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.*;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +52,7 @@ public class GameService {
     GameInfoEntity gameInfoEntity = new GameInfoEntity();
 
     gameInfoEntity.setId(gameInfoId);
+    gameInfoEntity.setTitle(createGameRequestDTO.getTitle());
     gameInfoEntity.setGameSet(createGameRequestDTO.getGameSet());
     gameInfoEntity.setGameScore(createGameRequestDTO.getGameScore());
     gameInfoEntity.setPlace(createGameRequestDTO.getPlace());
@@ -444,6 +447,18 @@ public class GameService {
     gameInfoRepository.deleteById(gameInfoId);
   }
 
+  public RandomGameTitleResponse getRandomTitle() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserEntity userEntity = userRepository.findById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    String randomTitle = generateRandomTitle(userEntity.getNickName());
+
+    return new RandomGameTitleResponse(randomTitle);
+  }
+
   private GameInfoDTO cloneWithPlaceName(GameInfoEntity src, String placeName) {
     GameInfoDTO g = new GameInfoDTO();
     g.setId(src.getId());
@@ -498,5 +513,13 @@ public class GameService {
   private double calcWinRate(int win, int total) {
     if (total == 0) return 0.0;
     return (double) win / total;
+  }
+
+  private String generateRandomTitle(String nickName) {
+    GameTitleTemplate[] templates = GameTitleTemplate.values();
+    int index = ThreadLocalRandom.current().nextInt(templates.length);
+    GameTitleTemplate template = templates[index];
+
+    return template.format(nickName);
   }
 }

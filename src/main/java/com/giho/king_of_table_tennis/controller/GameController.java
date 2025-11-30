@@ -53,6 +53,21 @@ public class GameController {
     return ResponseEntity.ok(selectedGameDateResponseDTO);
   }
 
+  @Operation(summary = "랜덤 제목 가져오기", description = "게임 생성을 할 때 랜덤 경기 제목을 가져오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "랜덤 경기 제목 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = RandomGameTitleResponse.class)
+    )
+  )
+  @GetMapping("/title/random")
+  public ResponseEntity<RandomGameTitleResponse> getRandomTitle() {
+    RandomGameTitleResponse randomGameTitleResponse = gameService.getRandomTitle();
+    return ResponseEntity.ok(randomGameTitleResponse);
+  }
+
   @Operation(summary = "탁구 경기 참가 신청", description = "수락 타입에 따라 탁구 경기 참가 신청을 하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
