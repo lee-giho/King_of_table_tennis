@@ -12,6 +12,8 @@ import java.util.Optional;
 
 public interface UserRankingRepository extends JpaRepository<UserRankingEntity, String> {
 
+  Optional<UserRankingEntity> findByUserId(String userId);
+
   @Query("""
     SELECT new com.giho.king_of_table_tennis.dto.UserRankingInfo(
       u.id, u.nickName, u.profileImage,

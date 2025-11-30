@@ -22,10 +22,8 @@ public interface GameRecordRepository extends JpaRepository<GameStateEntity, Str
       me.profileImage,
       ttiMe.racketType,
       CASE
-        WHEN (gs.defenderId = :userId AND gs.defenderScore > gs.challengerScore)
-          OR (gs.challengerId = :userId AND gs.challengerScore > gs.defenderScore)
-        THEN gi.gameSet
-        ELSE 0
+        WHEN gs.defenderId = :userId THEN gr.defenderSetScore
+        ELSE gr.challengerSetScore
       END,
       
       opp.id,
@@ -33,10 +31,8 @@ public interface GameRecordRepository extends JpaRepository<GameStateEntity, Str
       opp.profileImage,
       ttiOpp.racketType,
       CASE
-        WHEN (gs.defenderId = : userId AND gs.defenderScore < gs.challengerScore)
-          OR (gs.challengerId = : userId AND gs.challengerScore < gs.defenderScore)
-        THEN gi.gameSet
-        ELSE 0
+        WHEN gs.defenderId = :userId THEN gr.challengerSetScore
+        ELSE gr.defenderSetScore
       END,
       
       gi.place,
@@ -44,8 +40,11 @@ public interface GameRecordRepository extends JpaRepository<GameStateEntity, Str
     )
     FROM GameStateEntity gs
       JOIN GameInfoEntity gi ON gi.id = gs.gameInfoId
+      JOIN GameResultEntity gr ON gr.gameInfoId = gi.id
+      
       JOIN UserEntity me ON me.id = :userId
       LEFT JOIN UserTableTennisInfoEntity ttiMe ON ttiMe.userId = me.id
+      
       JOIN UserEntity opp
         ON (
           (gs.defenderId = :userId AND opp.id = gs.challengerId)
@@ -81,21 +80,15 @@ public interface GameRecordRepository extends JpaRepository<GameStateEntity, Str
       
       COALESCE(SUM(
         CASE
-          WHEN (
-              (gs.defender_id = :userId AND gs.defender_score > gs.challenger_score)
-              OR
-              (gs.challenger_id = :userId AND gs.challenger_score > gs.defender_score)
-          ) THEN 1 ELSE 0
+          WHEN gr.winner_id = :userId THEN 1
+          ELSE 0
         END
       ), 0) AS winCount,
-        
+      
       COALESCE(SUM(
         CASE
-          WHEN (
-              (gs.defender_id = :userId AND gs.defender_score < gs.challenger_score)
-              OR
-              (gs.challenger_id = :userId AND gs.challenger_score < gs.defender_score)
-          ) THEN 1 ELSE 0
+          WHEN gr.loser_id = :userId THEN 1
+          ELSE 0
         END
       ), 0) AS defeatCount,
       
@@ -103,24 +96,22 @@ public interface GameRecordRepository extends JpaRepository<GameStateEntity, Str
         WHEN COUNT(*) = 0 THEN 0
         ELSE COALESCE(SUM(
           CASE
-            WHEN (
-              (gs.defender_id = :userId AND gs.defender_score > gs.challenger_score)
-              OR
-              (gs.challenger_id = :userId AND gs.challenger_score > gs.defender_score)
-            ) THEN 1 ELSE 0
+            WHEN gr.winner_id = :userId THEN 1
+            ELSE 0
           END
-        ), 0) / COUNT(*)
+        ), 0) * 1.0 / COUNT(*)
       END AS winRate
       
     FROM (
-      SELECT gs.*
-      FROM game_state gs
-        JOIN game_info gi ON gi.id = gs.game_info_id
-      WHERE gs.state = 'END'
-        AND (gs.defender_id = :userId OR gs.challenger_id = :userId)
-      ORDER BY gi.game_date DESC
-      LIMIT 10
-    ) AS gs
+        SELECT gs.game_info_id
+        FROM game_state gs
+          JOIN game_info gi ON gi.id = gs.game_info_id
+        WHERE gs.state = 'END'
+          AND (gs.defender_id = :userId OR gs.challenger_id = :userId)
+        ORDER BY gi.game_date DESC
+        LIMIT 10
+      ) AS recent
+      JOIN game_result gr ON gr.game_info_id = recent.game_info_id
   """, nativeQuery = true)
   GameStatsProjection findRecentStats(
     @Param("userId") String userId

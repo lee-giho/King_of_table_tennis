@@ -30,7 +30,15 @@ public class GameService {
 
   private final TableTennisCourtRepository tableTennisCourtRepository;
 
+  private final GameResultRepository gameResultRepository;
+
+  private final GameSetScoreRepository gameSetScoreRepository;
+
+  private final UserRankingRepository userRankingRepository;
+
   private final AsyncService asyncService;
+
+  private final BroadcastRoomRepository broadcastRoomRepository;
 
   @Transactional
   public BooleanResponseDTO createGame(CreateGameRequestDTO createGameRequestDTO) {
@@ -133,6 +141,80 @@ public class GameService {
       recruitingGamePage.getNumber(),
       recruitingGamePage.getSize()
     );
+  }
+
+  @Transactional
+  public void finishGame(String gameInfoId, FinishGameRequest finishGameRequest) {
+
+    GameInfoEntity gameInfoEntity = gameInfoRepository.findById(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_INFO_NOT_FOUND));
+
+    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    // 이미 종료/만료된 경기인지 확인
+    if (gameStateEntity.getState() == GameState.END || gameStateEntity.getState() == GameState.EXPIRED) {
+      throw new CustomException(ErrorCode.GAME_ALREADY_FINISHED);
+    }
+
+    if (gameStateEntity.getChallengerId() == null) {
+      throw new CustomException(ErrorCode.CHALLENGER_NOT_FOUND);
+    }
+
+    int defenderSetScore = finishGameRequest.getDefenderSetScore();
+    int challengerSetScore = finishGameRequest.getChallengerSetScore();
+
+    if (defenderSetScore == challengerSetScore) {
+      throw new CustomException(ErrorCode.INVALID_GAME_RESULT);
+    }
+
+    String winnerId;
+    String loserId;
+
+    if (defenderSetScore > challengerSetScore) {
+      winnerId = gameStateEntity.getDefenderId();
+      loserId = gameStateEntity.getChallengerId();
+    } else {
+      winnerId = gameStateEntity.getChallengerId();
+      loserId = gameStateEntity.getDefenderId();
+    }
+
+    if (gameResultRepository.existsById(gameInfoId)) {
+      throw new CustomException(ErrorCode.GAME_RESULT_ALREADY_EXISTS);
+    }
+
+    GameResultEntity gameResultEntity = new GameResultEntity();
+    gameResultEntity.setGameInfoId(gameInfoId);
+    gameResultEntity.setDefenderSetScore(defenderSetScore);
+    gameResultEntity.setChallengerSetScore(challengerSetScore);
+    gameResultEntity.setWinnerId(winnerId);
+    gameResultEntity.setLoserId(loserId);
+
+    gameResultRepository.save(gameResultEntity);
+
+    // 세트별 점수 저장
+    if (finishGameRequest.getSets() != null) {
+      finishGameRequest.getSets().forEach(set -> {
+        GameSetScoreEntity gameSetScoreEntity = new GameSetScoreEntity();
+        gameSetScoreEntity.setGameInfoId(gameInfoId);
+        gameSetScoreEntity.setSetNumber(set.getSetNumber());
+        gameSetScoreEntity.setDefenderScore(set.getDefenderScore());
+        gameSetScoreEntity.setChallengerScore(set.getChallengerScore());
+        gameSetScoreRepository.save(gameSetScoreEntity);
+      });
+    }
+
+    // game_state 상태 변경
+    gameStateEntity.setState(GameState.END);
+    gameStateRepository.save(gameStateEntity);
+
+    // 사용자 랭킹 업데이트
+    updateUserRankingAfterGame(winnerId, loserId);
+
+    // 방송 방 제거
+    if (broadcastRoomRepository.exists(gameInfoId)) {
+      broadcastRoomRepository.deleteRoom(gameInfoId);
+    }
   }
 
   public GameDetailInfo getGameDetailInfo(String gameInfoId) {
@@ -385,5 +467,36 @@ public class GameService {
       ranking.getRating(), ranking.getWinRate(), ranking.getTotalGames(), ranking.getWinCount(), ranking.getDefeatCount(), ranking.getLastGameAt(),
       friendStatus
     );
+  }
+
+  private void updateUserRankingAfterGame(String winnerId, String loserId) {
+    UserRankingEntity winner = userRankingRepository.findByUserId(winnerId)
+      .orElseGet(() -> {
+        UserRankingEntity e = new UserRankingEntity();
+        e.setUserId(winnerId);
+        return e;
+      });
+    winner.setTotalGames(winner.getTotalGames() + 1);
+    winner.setWinCount(winner.getWinCount() + 1);
+    winner.setWinRate(calcWinRate(winner.getWinCount(), winner.getTotalGames()));
+    winner.setLastGameAt(LocalDateTime.now());
+    userRankingRepository.save(winner);
+
+    UserRankingEntity loser = userRankingRepository.findByUserId(loserId)
+      .orElseGet(() -> {
+        UserRankingEntity e = new UserRankingEntity();
+        e.setUserId(loserId);
+        return e;
+      });
+    loser.setTotalGames(loser.getTotalGames() + 1);
+    loser.setDefeatCount(loser.getDefeatCount() + 1);
+    loser.setWinRate(calcWinRate(loser.getWinCount(), loser.getTotalGames()));
+    loser.setLastGameAt(LocalDateTime.now());
+    userRankingRepository.save(loser);
+  }
+
+  private double calcWinRate(int win, int total) {
+    if (total == 0) return 0.0;
+    return (double) win / total;
   }
 }

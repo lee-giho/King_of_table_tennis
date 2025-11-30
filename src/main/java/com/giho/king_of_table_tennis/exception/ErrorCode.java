@@ -37,6 +37,12 @@ public enum ErrorCode {
   GAME_NOT_RECRUITING(HttpStatus.NOT_FOUND, "상대방 모집중이 아닙니다."),
   GAME_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 경기를 삭제할 권한이 없습니다."),
   GAME_NOT_DELETABLE(HttpStatus.CONFLICT, "해당 상태의 경기는 삭제할 수 없습니다."),
+  GAME_ALREADY_FINISHED(HttpStatus.CONFLICT, "이미 종료/만료된 경기입니다."),
+  CHALLENGER_NOT_FOUND(HttpStatus.NOT_FOUND, "아직 상대방이 없는 경기입니다."),
+  INVALID_GAME_RESULT(HttpStatus.BAD_REQUEST, "경기는 무승부가 될 수 없습니다."),
+
+  // 탁구 경기 결과
+  GAME_RESULT_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 탁구 경기 결과가 존재합니다."),
 
   // 탁구 경기 신청
   GAME_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "탁구 경기 신청 정보를 찾을 수 없습니다."),

@@ -20,12 +20,6 @@ public class GameStateEntity {
   @Column(name = "challenger_id", nullable = true)
   private String challengerId;
 
-  @Column(name = "defender_score", nullable = true)
-  private int defenderScore;
-
-  @Column(name = "challenger_score", nullable = true)
-  private int challengerScore;
-
   @Column(name = "state", nullable = false)
   @Enumerated(EnumType.STRING)
   private GameState state;
