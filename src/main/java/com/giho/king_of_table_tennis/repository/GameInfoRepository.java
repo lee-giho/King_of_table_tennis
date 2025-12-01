@@ -1,6 +1,7 @@
 package com.giho.king_of_table_tennis.repository;
 
 import com.giho.king_of_table_tennis.dto.GameDetailInfo;
+import com.giho.king_of_table_tennis.dto.GameDetailInfoByPage;
 import com.giho.king_of_table_tennis.dto.RecruitingGameDTO;
 import com.giho.king_of_table_tennis.entity.GameInfoEntity;
 import com.giho.king_of_table_tennis.entity.GameState;
@@ -33,31 +34,28 @@ public interface GameInfoRepository extends JpaRepository<GameInfoEntity, String
     FROM GameInfoEntity g
       JOIN GameStateEntity s ON g.id = s.gameInfoId
     WHERE g.place = :place
-      AND g.gameDate > :now
+      AND s.state IN :gameStates
   """)
-  Page<RecruitingGameDTO> findRegisteredGamesByPlaceAndDate(@Param("place") String place, @Param("now") LocalDateTime now, @Param("userId") String userId, Pageable pageable);
+  Page<RecruitingGameDTO> findGamesByPlaceAndState(
+    @Param("place") String place,
+    @Param("gameStates") List<GameState> gameStates,
+    @Param("userId") String userId,
+    Pageable pageable
+  );
+
 
   @Query("""
-    SELECT new com.giho.king_of_table_tennis.dto.RecruitingGameDTO(
-      g,
-      s.defenderId,
-      s.state,
-      CASE WHEN s.defenderId = :userId THEN true ELSE false END,
-      CASE WHEN EXISTS (
-        SELECT 1
-        FROM GameApplicationEntity ga
-        WHERE ga.gameInfoId = g.id
-          AND ga.applicantId = :userId
-      ) THEN true ELSE false END
-    )
-    FROM GameInfoEntity g
-      JOIN GameStateEntity s ON g.id = s.gameInfoId
-    WHERE g.place = :place
-      AND g.gameDate < :now
+    SELECT gi
+    FROM GameInfoEntity gi
+      JOIN GameStateEntity gs ON gs.gameInfoId = gi.id
+    WHERE gi.place = :place
+      AND gs.state IN :gameStates
   """)
-  Page<RecruitingGameDTO> findEndedGamesByPlaceAndDate(@Param("place") String place, @Param("now") LocalDateTime now, @Param("userId") String userId, Pageable pageable);
-
-  Page<GameInfoEntity> findByPlaceAndGameDateAfterOrderByGameDateAsc(String place, LocalDateTime now, Pageable pageable);
+  Page<GameInfoEntity> findGameInfoEntityByPlaceAndStates(
+    @Param("place") String place,
+    @Param("gameStates") List<GameState> gameStates,
+    Pageable pageable
+  );
 
   @Query("""
     SELECT g, s, d, c, dTti, cTti, dFriend, cFriend, dRanking, cRanking,

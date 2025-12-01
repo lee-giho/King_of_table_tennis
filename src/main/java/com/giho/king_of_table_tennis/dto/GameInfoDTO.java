@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @Schema(description = "place를 id가 아닌 name을 사용하는 DTO")
 public class GameInfoDTO {
   private String id;
+  private String title;
   private int gameSet;
   private int gameScore;
   private String place;
