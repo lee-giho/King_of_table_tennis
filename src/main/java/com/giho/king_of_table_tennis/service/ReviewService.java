@@ -115,6 +115,7 @@ public class ReviewService {
 
       GameInfoDTO gameInfoDTO = new GameInfoDTO(
         g.getId(),
+        g.getTitle(),
         g.getGameSet(),
         g.getGameScore(),
         placeName,

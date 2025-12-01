@@ -2,6 +2,7 @@ package com.giho.king_of_table_tennis.service;
 
 import com.giho.king_of_table_tennis.dto.*;
 import com.giho.king_of_table_tennis.entity.*;
+import com.giho.king_of_table_tennis.enums.GameTitleTemplate;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
 import com.giho.king_of_table_tennis.repository.*;
@@ -14,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +53,7 @@ public class GameService {
     GameInfoEntity gameInfoEntity = new GameInfoEntity();
 
     gameInfoEntity.setId(gameInfoId);
+    gameInfoEntity.setTitle(createGameRequestDTO.getTitle());
     gameInfoEntity.setGameSet(createGameRequestDTO.getGameSet());
     gameInfoEntity.setGameScore(createGameRequestDTO.getGameScore());
     gameInfoEntity.setPlace(createGameRequestDTO.getPlace());
@@ -124,15 +128,18 @@ public class GameService {
 
     asyncService.expireOutdatedGames(tableTennisCourtId); // 비동기로 경기 만료 처리
 
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "gameDate"));
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "gameDate"));
 
-    Page<RecruitingGameDTO> recruitingGamePage;
+    List<GameState> gameStates;
 
     if (type.equals("REGISTERED")) {
-      recruitingGamePage = gameInfoRepository.findRegisteredGamesByPlaceAndDate(tableTennisCourtId, LocalDateTime.now(), userId, pageable);
+      gameStates = List.of(GameState.RECRUITING, GameState.WAITING, GameState.DOING);
     } else {
-      recruitingGamePage = gameInfoRepository.findEndedGamesByPlaceAndDate(tableTennisCourtId, LocalDateTime.now(), userId, pageable);
+      gameStates = List.of(GameState.END, GameState.EXPIRED);
     }
+
+    Page<RecruitingGameDTO> recruitingGamePage = gameInfoRepository.findGamesByPlaceAndState(tableTennisCourtId, gameStates, userId, pageable);
+
 
     return new PageResponse<>(
       recruitingGamePage.getContent(),
@@ -246,68 +253,100 @@ public class GameService {
     return new GameDetailInfo(defender, challenger, gameInfoEntity, gameStateEntity);
   }
 
-  public Page<GameDetailInfoByPage> getGameDetailInfoByPage(Pageable pageable, String place) {
+  public PageResponse<GameDetailInfoByPage> getGameDetailInfoByPage(String place, int page, int size) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String currentUserId = authentication.getName();
 
-    LocalDateTime now = LocalDateTime.now();
+    List<GameState> states = List.of(GameState.RECRUITING, GameState.WAITING, GameState.DOING);
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "gameDate"));
 
-    Page<GameInfoEntity> gameInfoPage = gameInfoRepository
-      .findByPlaceAndGameDateAfterOrderByGameDateAsc(place, now, pageable);
+    // GameInfo 페이징 조회
+    Page<GameInfoEntity> gameInfoPage = gameInfoRepository.findGameInfoEntityByPlaceAndStates(place, states, pageable);
 
     if (gameInfoPage.isEmpty()) {
-      return Page.empty(pageable);
+      return new PageResponse<>(
+        Collections.emptyList(),
+        0,
+        0L,
+        page,
+        size
+      );
     }
 
     List<GameInfoEntity> gameInfoList = gameInfoPage.getContent();
-    List<String> gameInfoIdList = gameInfoList.stream().map(GameInfoEntity::getId).toList();
 
-    List<GameStateEntity> gameStateList = gameStateRepository.findAllByGameInfoIdIn(gameInfoIdList);
-    Map<String, GameStateEntity> gameStateByGameId = gameStateList.stream()
+    // gameState 한 번에 조회 후 map으로 변환
+    Map<String, GameStateEntity> gameStateByGameId = gameStateRepository.findAllByGameInfoIdIn(
+      gameInfoList.stream()
+        .map(GameInfoEntity::getId)
+        .toList()
+    ).stream()
       .collect(Collectors.toMap(GameStateEntity::getGameInfoId, s -> s));
 
-    Set<String> userIds = new HashSet<>();
-    for (GameStateEntity s : gameStateList) {
-      userIds.add(s.getDefenderId());
-      if (s.getChallengerId() != null) {
-        userIds.add(s.getChallengerId());
-      }
-    }
-    List<UserInfo> userInfoList = userRepository.findUserInfoByIds(new ArrayList<>(userIds), currentUserId);
-    Map<String, UserInfo> userById = userInfoList.stream()
+    // 해당 경기들의 defender와 challenger id 가져오기
+    Set<String> userIds = gameStateByGameId.values().stream()
+      .flatMap(gs -> Stream.of(gs.getDefenderId(), gs.getChallengerId()))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toSet());
+
+    // UserInfo 한 번에 조회
+    Map<String, UserInfo> userById = userRepository.findUserInfoByIds(new ArrayList<>(userIds), currentUserId)
+      .stream()
       .collect(Collectors.toMap(UserInfo::getId, u -> u));
 
-    List<String> placeIds = gameInfoList.stream()
-      .map(GameInfoEntity::getPlace)
-      .distinct()
+    Map<String, String> placeNameById = tableTennisCourtRepository
+      .findAllById(
+        gameInfoList.stream()
+          .map(GameInfoEntity::getPlace)
+          .distinct()
+          .toList()
+      )
+      .stream()
+      .collect(Collectors.toMap(
+        TableTennisCourtEntity::getId,
+        TableTennisCourtEntity::getName
+      ));
+
+    List<GameDetailInfoByPage> gameDetailInfoList = gameInfoList.stream()
+      .map(gi -> {
+        GameStateEntity gs = gameStateByGameId.get(gi.getId());
+        if (gs == null) {
+          return null;
+        }
+
+        UserInfo defender = userById.get(gs.getDefenderId());
+        UserInfo challenger = Optional.ofNullable(gs.getChallengerId())
+          .map(userById::get)
+          .orElse(null);
+
+        String placeName = placeNameById.getOrDefault(gi.getPlace(), gi.getPlace());
+
+        GameInfoDTO gameInfoDTO = new GameInfoDTO(
+          gi.getId(),
+          gi.getTitle(),
+          gi.getGameSet(),
+          gi.getGameScore(),
+          placeName,
+          gi.getAcceptanceType(),
+          gi.getGameDate()
+        );
+
+        boolean isMine = defender != null && defender.getId().equals(currentUserId);
+
+        return new GameDetailInfoByPage(defender, challenger, gameInfoDTO, gs, isMine);
+      })
+      .filter(Objects::nonNull) // state 없는 것은 제거
       .toList();
 
-    List<TableTennisCourtEntity> tableTennisCourtList = tableTennisCourtRepository.findAllById(placeIds);
-    Map<String, String> placeNameById = tableTennisCourtList.stream()
-      .collect(Collectors.toMap(TableTennisCourtEntity::getId, TableTennisCourtEntity::getName));
+    Page<GameDetailInfoByPage> gameDetailInfoPage = new PageImpl<>(gameDetailInfoList, pageable, gameInfoPage.getTotalElements());
 
-    List<GameDetailInfoByPage> gameDetailInfoList = new ArrayList<>();
-    for (GameInfoEntity gameInfo : gameInfoList) {
-
-      String placeName = placeNameById.getOrDefault(gameInfo.getPlace(), gameInfo.getPlace());
-      GameInfoDTO cloneGameInfo = cloneWithPlaceName(gameInfo, placeName);
-
-      GameStateEntity gameState = gameStateByGameId.get(gameInfo.getId());
-      if (gameState == null) {
-        continue;
-      }
-
-      UserInfo defender = userById.get(gameState.getDefenderId());
-      UserInfo challenger = (gameState.getChallengerId() == null)
-        ? null
-        : userById.get(gameState.getChallengerId());
-
-      boolean isMine = defender.getId().equals(currentUserId);
-
-      gameDetailInfoList.add(new GameDetailInfoByPage(defender, challenger, cloneGameInfo, gameState, isMine));
-    }
-
-    return new PageImpl<>(gameDetailInfoList, pageable, gameInfoPage.getTotalElements());
+    return new PageResponse<>(
+      gameDetailInfoPage.getContent(),
+      gameDetailInfoPage.getTotalPages(),
+      gameDetailInfoPage.getTotalElements(),
+      gameDetailInfoPage.getNumber(),
+      gameDetailInfoPage.getSize()
+    );
   }
 
   public Page<GameDetailInfoByUser> getGameDetailInfoByUser(String type, Pageable pageable) {
@@ -444,9 +483,22 @@ public class GameService {
     gameInfoRepository.deleteById(gameInfoId);
   }
 
+  public RandomGameTitleResponse getRandomTitle() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String userId = authentication.getName();
+
+    UserEntity userEntity = userRepository.findById(userId)
+      .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    String randomTitle = generateRandomTitle(userEntity.getNickName());
+
+    return new RandomGameTitleResponse(randomTitle);
+  }
+
   private GameInfoDTO cloneWithPlaceName(GameInfoEntity src, String placeName) {
     GameInfoDTO g = new GameInfoDTO();
     g.setId(src.getId());
+    g.setTitle(src.getTitle());
     g.setGameSet(src.getGameSet());
     g.setGameScore(src.getGameScore());
     g.setAcceptanceType(src.getAcceptanceType());
@@ -498,5 +550,13 @@ public class GameService {
   private double calcWinRate(int win, int total) {
     if (total == 0) return 0.0;
     return (double) win / total;
+  }
+
+  private String generateRandomTitle(String nickName) {
+    GameTitleTemplate[] templates = GameTitleTemplate.values();
+    int index = ThreadLocalRandom.current().nextInt(templates.length);
+    GameTitleTemplate template = templates[index];
+
+    return template.format(nickName);
   }
 }

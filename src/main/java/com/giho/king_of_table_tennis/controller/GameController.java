@@ -53,6 +53,21 @@ public class GameController {
     return ResponseEntity.ok(selectedGameDateResponseDTO);
   }
 
+  @Operation(summary = "랜덤 제목 가져오기", description = "게임 생성을 할 때 랜덤 경기 제목을 가져오는 API", security = @SecurityRequirement(name = "JWT"))
+  @ApiResponse(
+    responseCode = "200",
+    description = "랜덤 경기 제목 반환",
+    content = @Content(
+      mediaType = "application/json",
+      schema = @Schema(implementation = RandomGameTitleResponse.class)
+    )
+  )
+  @GetMapping("/title/random")
+  public ResponseEntity<RandomGameTitleResponse> getRandomTitle() {
+    RandomGameTitleResponse randomGameTitleResponse = gameService.getRandomTitle();
+    return ResponseEntity.ok(randomGameTitleResponse);
+  }
+
   @Operation(summary = "탁구 경기 참가 신청", description = "수락 타입에 따라 탁구 경기 참가 신청을 하는 API", security = @SecurityRequirement(name = "JWT"))
   @ApiResponse(
     responseCode = "200",
@@ -134,18 +149,8 @@ public class GameController {
     @RequestParam(name = "size", defaultValue = "1") int size,
     @PathVariable String place) {
 
-    Pageable pageable = PageRequest.of(page, size);
-    Page<GameDetailInfoByPage> gameDetailInfoPage = gameService.getGameDetailInfoByPage(pageable, place);
-
-    PageResponse<GameDetailInfoByPage> body = new PageResponse<>(
-      gameDetailInfoPage.getContent(),
-      gameDetailInfoPage.getTotalPages(),
-      gameDetailInfoPage.getTotalElements(),
-      gameDetailInfoPage.getNumber(),
-      gameDetailInfoPage.getSize()
-    );
-
-    return ResponseEntity.ok(body);
+    PageResponse<GameDetailInfoByPage> gameDetailInfoPage = gameService.getGameDetailInfoByPage(place, page, size);
+    return ResponseEntity.ok(gameDetailInfoPage);
   }
 
   @Operation(summary = "페이징을 통해 경기에 대한 자세한 정보 불러오기 / 마이페이지의 탁구 경기 내역", description = "사용자 아이디와 경기 전/후로 경기 정보 불러오는 API", security = @SecurityRequirement(name = "JWT"))

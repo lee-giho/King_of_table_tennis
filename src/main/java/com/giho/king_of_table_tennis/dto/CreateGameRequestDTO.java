@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @Schema(description = "게임 만들기 요청 DTO")
 public class CreateGameRequestDTO {
+  private String title;
   private int gameSet;
   private int gameScore;
   private String place;
