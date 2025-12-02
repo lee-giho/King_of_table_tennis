@@ -151,6 +151,36 @@ public class GameService {
   }
 
   @Transactional
+  public void startGame(String gameInfoId) {
+
+    // 경기 정보가 없으면 X
+    if (!gameInfoRepository.existsById(gameInfoId)) {
+      throw new CustomException(ErrorCode.GAME_INFO_NOT_FOUND);
+    }
+
+    GameStateEntity gameStateEntity = gameStateRepository.findByGameInfoId(gameInfoId)
+      .orElseThrow(() -> new CustomException(ErrorCode.GAME_STATE_NOT_FOUND));
+
+    // 이미 끝나거나 만료된 경기면 시작 X
+    if (gameStateEntity.getState() == GameState.END || gameStateEntity.getState() == GameState.EXPIRED) {
+      throw new CustomException(ErrorCode.GAME_ALREADY_FINISHED);
+    }
+
+    // 이미 진행중인 경기면 X
+    if (gameStateEntity.getState() == GameState.DOING) {
+      throw new CustomException(ErrorCode.GAME_ALREADY_STARTED);
+    }
+
+    // 참가자가 없는 경기면 X
+    if (gameStateEntity.getChallengerId() == null) {
+      throw new CustomException(ErrorCode.CHALLENGER_NOT_FOUND);
+    }
+
+    gameStateEntity.setState(GameState.DOING);
+    gameStateRepository.save(gameStateEntity);
+  }
+
+  @Transactional
   public void finishGame(String gameInfoId, FinishGameRequest finishGameRequest) {
 
     GameInfoEntity gameInfoEntity = gameInfoRepository.findById(gameInfoId)
