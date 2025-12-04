@@ -8,12 +8,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-  @Value("${PROFILE_IMAGE_PATH}")
-  private String profileImageRelativePath;
+  @Value("${spring.cloud.aws.s3.bucket")
+  private String bucketName;
 
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry.addResourceHandler("/image/profile/**")
-      .addResourceLocations("file:" + profileImageRelativePath + "/");
+      .addResourceLocations("s3://" + bucketName + "/");
   }
 }
