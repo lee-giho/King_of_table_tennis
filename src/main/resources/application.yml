@@ -1,10 +1,12 @@
 spring:
   application:
     name: King_of_table_tennis
+  profiles:
+    active: dev # 기본 dev
 
   datasource:
-    url: jdbc:mysql://${MYSQL_ENDPOINT:localhost}:3306/kingOfTableTennis?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
-    username: kingOfTableTennis_user
+    url: jdbc:mysql://${MYSQL_ENDPOINT:localhost}:3306/kott
+    username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
@@ -14,8 +16,15 @@ spring:
     mongodb:
       uri: ${MONGODB_URL}
     redis:
-      host: localhost
+      host: ${REDIS_HOST}
       port: 6379
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: ${AWS_BUCKET}
 
   jpa:
     properties:
@@ -25,7 +34,7 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: dlrlghproject0429@gmail.com
+    username: ${GOOGLE_MAIL_USERNAME}
     password: ${GOOGLE_MAIL_PASSWORD}
     properties:
       mail:
@@ -51,7 +60,15 @@ logging:
         type.descriptor.sql: trace
     org.hibernate.orm.jdbc.bind: trace
 
+
 # Swagger Spring UI Setting
+---
+# dev 환경 설정 - Swagger 활성화
+spring:
+  config:
+    activate:
+      on-profile: dev
+
 springdoc:
   packages-to-scan: com.giho.king_of_table_tennis # ?? ??? ????? ??
   default-consumes-media-type: application/json;charset=UTF-8 # API? ?? ? ???? ?? ??? ?? ??
@@ -67,3 +84,17 @@ springdoc:
     path: /swagger-ui.html # Swagger UI ?? ?? (???: /swagger-ui.html)
     tags-sorter: alpha # ?? & ????? ?????? ??
     operations-sorter: alpha
+
+
+---
+# prod 환경 설정 - Swagger 비활성화
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false

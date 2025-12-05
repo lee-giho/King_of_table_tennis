@@ -49,17 +49,15 @@ public class UserService {
     UserEntity user = userRepository.findById(userId)
       .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-    String imageFileName;
+    String imageKey = "default";
 
-    if (profileRegistrationRequestDTO.getProfileImage() != null) {
-      imageFileName = imageService.saveImage(profileRegistrationRequestDTO.getProfileImage());
-    } else {
-      imageFileName = "default";
+    if (profileRegistrationRequestDTO.getProfileImage() != null && !profileRegistrationRequestDTO.getProfileImage().isEmpty()) {
+      imageKey = imageService.saveImage(profileRegistrationRequestDTO.getProfileImage(), userId);
     }
 
     try {
       user.setNickName(profileRegistrationRequestDTO.getNickName());
-      user.setProfileImage(imageFileName);
+      user.setProfileImage(imageKey);
 
       userRepository.save(user);
     } catch (Exception e) {
@@ -187,11 +185,11 @@ public class UserService {
 
     try {
       // 새 이미지 저장
-      String newImageName = imageService.saveImage(uploadProfileImageRequest.getProfileImage());
-      String oldImageName = userEntity.getProfileImage();
+      String newKey = imageService.saveImage(uploadProfileImageRequest.getProfileImage(), userId);
+      String oldKey = userEntity.getProfileImage();
 
       // DB 업데이트
-      userEntity.setProfileImage(newImageName);
+      userEntity.setProfileImage(newKey);
       userRepository.save(userEntity);
 
       // 트랜잭션 완료 후 처리
@@ -199,15 +197,15 @@ public class UserService {
         new TransactionSynchronization() {
           @Override
           public void afterCommit() {
-            if (oldImageName != null && !oldImageName.isEmpty()) {
-              imageService.deleteProfileImage(oldImageName);
+            if (oldKey != null && !oldKey.isEmpty()) {
+              imageService.deleteProfileImage(oldKey);
             }
           }
           @Override
           public void afterCompletion(int status) {
             if (status == STATUS_ROLLED_BACK) {
               // DB 롤백 시 저장했던 새 이미지 삭제
-              imageService.deleteProfileImage(newImageName);
+              imageService.deleteProfileImage(newKey);
             }
           }
         }
@@ -227,8 +225,8 @@ public class UserService {
       .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
     try {
-      String oldImageName = userEntity.getProfileImage();
-      if (oldImageName == null || oldImageName.isEmpty()) {
+      String oldKey = userEntity.getProfileImage();
+      if (oldKey == null || oldKey.isEmpty() || "default".equals(oldKey)) {
         // 원래 프로필 이미지가 없을 때
         return new BooleanResponseDTO(true);
       }
@@ -242,7 +240,7 @@ public class UserService {
         new TransactionSynchronization() {
           @Override
           public void afterCommit() {
-            imageService.deleteProfileImage(oldImageName);
+            imageService.deleteProfileImage(oldKey);
           }
         }
       );

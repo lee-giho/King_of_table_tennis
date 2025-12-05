@@ -62,6 +62,11 @@ dependencies {
 
     // MongoDB DB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    // AWS
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.4.2'
+    implementation platform('software.amazon.awssdk:bom:2.40.1')
+    implementation 'software.amazon.awssdk:s3'
 }
 
 tasks.named('test') {
