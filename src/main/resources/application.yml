@@ -5,8 +5,8 @@ spring:
     active: dev # 기본 dev
 
   datasource:
-    url: jdbc:mysql://${MYSQL_ENDPOINT:localhost}:3306/kingOfTableTennis?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
-    username: kingOfTableTennis_user
+    url: jdbc:mysql://${MYSQL_ENDPOINT:localhost}:3306/kott
+    username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
