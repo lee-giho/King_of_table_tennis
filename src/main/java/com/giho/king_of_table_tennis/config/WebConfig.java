@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-  @Value("${spring.cloud.aws.s3.bucket")
+  @Value("${spring.cloud.aws.s3.bucket}")
   private String bucketName;
 
   @Override

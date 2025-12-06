@@ -67,6 +67,9 @@ dependencies {
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.4.2'
     implementation platform('software.amazon.awssdk:bom:2.40.1')
     implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:sesv2'
+    implementation 'software.amazon.awssdk:auth'
+    implementation 'software.amazon.awssdk:regions'
 }
 
 tasks.named('test') {
