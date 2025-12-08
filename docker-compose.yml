@@ -1,0 +1,21 @@
+services:
+  app:
+    image: ${DOCKERHUB_USERNAME}/kott-app:latest
+    container_name: kott
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.prod
+    depends_on:
+      - redis
+    restart: always
+
+  redis:
+    image: redis:7.0
+    container_name: redis-kott
+    volumes:
+      - redis_data:/data
+    restart: always
+
+volumes:
+  redis_data:
