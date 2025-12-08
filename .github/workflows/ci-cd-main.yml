@@ -90,6 +90,9 @@ jobs:
             AWS_BUCKET=${{ secrets.AWS_BUCKET }}
             EOF
 
+            echo "[DEPLOY] Login Docker"
+            echo "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
             echo "[DEPLOY] Pull latest image"
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/kott-app:latest
 
