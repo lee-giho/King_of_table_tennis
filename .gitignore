@@ -12,8 +12,8 @@ build/
 upload/
 
 ### 도커파일 ###
-Dockerfile
-docker-compose.yml
+#Dockerfile
+#docker-compose.yml
 
 ### STS ###
 .apt_generated

@@ -10,8 +10,6 @@ public class KingOfTableTennisApplication {
 
   public static void main(String[] args) {
 
-    EnvLoader.loadEnv();
-
     SpringApplication.run(KingOfTableTennisApplication.class, args);
   }
 

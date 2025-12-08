@@ -3,40 +3,64 @@ package com.giho.king_of_table_tennis.service;
 import com.giho.king_of_table_tennis.dto.SendVerificationCodeResponseDTO;
 import com.giho.king_of_table_tennis.exception.CustomException;
 import com.giho.king_of_table_tennis.exception.ErrorCode;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.sesv2.model.*;
 
 @RequiredArgsConstructor
 @Service
 public class EmailService {
 
-  private final JavaMailSender javaMailSender;
+  private final SesV2Client sesV2Client;
 
   private final SpringTemplateEngine templateEngine;
+
+  @Value("${mail.from}")
+  private String FROM;
 
   // 이메일 전송 메서드
   public SendVerificationCodeResponseDTO sendVerificationEmail (String type, String email, HttpServletRequest request) {
     try {
       HttpSession session = request.getSession(true);
-      MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-      MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
 
+      // 인증 코드 생성
       String verificationCode = generateVerificationCode();
 
-      mimeMessageHelper.setTo(email); // 수신자 설정
-      mimeMessageHelper.setSubject(getSubjectByType(type)); // 이메일 제목 설정
-      mimeMessageHelper.setText(buildEmailContent(verificationCode, type), true); // 이메일 내용, HTML 형식으로 설정
+      // 제목 & 본문 생성
+      String subject = getSubjectByType(type);
+      String htmlBody = buildEmailContent(verificationCode, type);
+
+      // SES destination
+      Destination destination = Destination.builder()
+        .toAddresses(email)
+        .build();
+
+      Message message = Message.builder()
+        .subject(
+          Content.builder().data(subject).charset("UTF-8").build()
+        )
+        .body(
+          Body.builder()
+            .html(Content.builder().data(htmlBody).charset("UTF-8").build())
+            .build()
+        )
+        .build();
+
+      // SES 요청 만들기
+      SendEmailRequest sendEmailRequest = SendEmailRequest.builder()
+        .fromEmailAddress(FROM)
+        .destination(destination)
+        .content(EmailContent.builder().simple(message).build())
+        .build();
 
       // 이메일 발송
-      javaMailSender.send(mimeMessage);
+      sesV2Client.sendEmail(sendEmailRequest);
 
       // 세션에 인증번호 저장
       boolean isSaveCode = saveCodeToSession(verificationCode, 3, session);
@@ -44,9 +68,10 @@ public class EmailService {
       if (!isSaveCode) {
         throw new CustomException(ErrorCode.EMAIL_SEND_FAILED);
       }
+
       return new SendVerificationCodeResponseDTO(session.getId());
-    } catch (MessagingException messagingException) {
-      throw new CustomException(ErrorCode.EMAIL_SEND_FAILED, "이메일 전송 실패: " + messagingException.getMessage());
+    } catch (SesV2Exception e) {
+      throw new CustomException(ErrorCode.EMAIL_SEND_FAILED, "이메일 전송 실패(SES): " + e.awsErrorDetails().errorMessage());
     } catch (Exception e) {
       throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
     }

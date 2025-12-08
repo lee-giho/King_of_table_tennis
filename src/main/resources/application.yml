@@ -5,7 +5,7 @@ spring:
     active: dev # 기본 dev
 
   datasource:
-    url: jdbc:mysql://${MYSQL_ENDPOINT:localhost}:3306/kott
+    url: jdbc:mysql://${MYSQL_ENDPOINT}:3306/kott?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -31,22 +31,13 @@ spring:
       hibernate:
         format_sql: true
 
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${GOOGLE_MAIL_USERNAME}
-    password: ${GOOGLE_MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
   servlet:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+
+mail:
+  from: ${MAIL_FROM}
 
 server:
   address: 0.0.0.0
