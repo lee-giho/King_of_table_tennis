@@ -86,6 +86,7 @@ public enum ErrorCode {
   // 인증/인가 관련
   TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
   INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+  INVALID_TOKEN_FORMAT(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰의 형태입니다."),
 
   // JSON
   JSON_PARSE_FAILED(HttpStatus.BAD_REQUEST, "JSON 파싱 실패"),
